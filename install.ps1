@@ -26,7 +26,7 @@ $AgentPaths = @(
 $SrcDir = if ($Path) { Resolve-Path $Path } else { $PSScriptRoot }
 
 # 3. Directory Link Helper
-function Create-Link ($targetPath, $sourcePath) {
+function New-Link ($targetPath, $sourcePath) {
     $parentDir = Split-Path $targetPath
     if (-not (Test-Path $parentDir)) {
         New-Item -ItemType Directory -Path $parentDir -Force | Out-Null
@@ -57,7 +57,7 @@ function Create-Link ($targetPath, $sourcePath) {
 if ($Local) {
     Write-Host "Installing us-refinement in LOCAL Mode..."
     foreach ($agent in $AgentPaths) {
-        Create-Link $agent $SrcDir
+        New-Link $agent $SrcDir
     }
 } else {
     Write-Host "Installing us-refinement in GLOBAL Mode..."
@@ -79,7 +79,7 @@ if ($Local) {
     }
     
     foreach ($agent in $AgentPaths) {
-        Create-Link $agent $CentralDir
+        New-Link $agent $CentralDir
     }
 }
 
