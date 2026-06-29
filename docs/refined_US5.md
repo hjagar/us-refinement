@@ -31,12 +31,19 @@
 ### Assumptions / pending
 - Se asume que el parser de markdown de los agentes del proyecto buscará y deserializará este bloque oculto usando delimitadores estándar.
 
-<!--
-[AI-DATA]
+<!-- [AI-DATA]
 id: US5
 type: feat
 breaking: false
 dependencies: [US1]
+metadata:
+  scope:
+    backend: true
+    frontend: false
+  role: "developer"
+  endpoint: "none"
+  auth: "none"
+  ui: "none"
 scenarios:
   - name: "Generate hidden YAML block"
     given: "refined user story in Spanish is completed"
