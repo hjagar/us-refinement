@@ -16,7 +16,7 @@ if (-not (Get-Command gh -ErrorAction SilentlyContinue)) {
 
 # 2. Path Setup
 $HomeDir = $env:USERPROFILE
-$CentralDir = Join-Path $HomeDir ".config\skills\us-refinement"
+$CentralDir = Join-Path $HomeDir ".hjagar\skills\us-refinement"
 $AgentPaths = @(
     (Join-Path $HomeDir ".gemini\skills\us-refinement"),
     (Join-Path $HomeDir ".claude\skills\us-refinement"),

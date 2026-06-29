@@ -25,7 +25,7 @@ if ! command -v gh &> /dev/null; then
 fi
 
 # 2. Path Setup
-CENTRAL_DIR="$HOME/.config/skills/us-refinement"
+CENTRAL_DIR="$HOME/.hjagar/skills/us-refinement"
 AGENT_PATHS=(
     "$HOME/.gemini/skills/us-refinement"
     "$HOME/.claude/skills/us-refinement"
