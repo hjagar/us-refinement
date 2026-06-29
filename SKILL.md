@@ -94,6 +94,26 @@ Output format:
 
 ### Assumptions / pending
 - [Only if the user chose to proceed without answering something: list each unconfirmed point here, clearly marked as an assumption, NOT as fact]
+
+<!-- [AI-DATA]
+id: US[number]
+type: [feat|fix|refactor|docs|chore]
+breaking: [true|false]
+dependencies: [[ID1, ID2] or []]
+metadata:
+  scope:
+    backend: [true|false]
+    frontend: [true|false]
+  role: "[role name]"
+  endpoint: "[HTTP method + route, or 'none']"
+  auth: "[auth policy, or 'none']"
+  ui: "[page|modal|form|action|none]"
+scenarios:
+  - name: "[Scenario 1 name]"
+    given: "[preconditions in English]"
+    when: "[actions in English]"
+    then: "[expected outcomes in English]"
+-->
 ```
 
 ## Step 4: Offer to write back to GitHub (only if the source was a GitHub issue)
