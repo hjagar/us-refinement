@@ -1,13 +1,13 @@
 ## US6: Desinstalación Automatizada (Uninstall/Cleanup)
 
 **As a** desarrollador que ya no necesita el skill o quiere limpiar su máquina
-**I want** contar con scripts de desinstalación (`uninstall.ps1` y `uninstall.sh`)
+**I want** contar con scripts de desinstalación (`us-refinement-uninstall.ps1` y `us-refinement-uninstall.sh`)
 **So that** pueda remover completamente el skill y limpiar las junctions/symlinks de los agentes de IA de manera automatizada.
 
 ### Acceptance criteria
 
 **Scenario 1: Confirmación de desinstalación**
-- **Given** que ejecuto el script de desinstalación (`uninstall.ps1` o `uninstall.sh`)
+- **Given** que ejecuto el script de desinstalación (`us-refinement-uninstall.ps1` o `us-refinement-uninstall.sh`)
 - **When** el script solicita confirmación de borrado y respondo negativamente (`N` o `n`)
 - **Then** el script debe abortar inmediatamente la desinstalación sin modificar ningún archivo o enlace en el sistema.
 
@@ -30,7 +30,7 @@
 - **US3: Instalación Automatizada (Bootstrap/Installer)**
 
 ### Technical scope
-- Backend: Sí (scripts de desinstalación `uninstall.ps1` y `uninstall.sh` en la raíz del repositorio).
+- Backend: Sí (scripts de desinstalación `us-refinement-uninstall.ps1` y `us-refinement-uninstall.sh` en la raíz del repositorio).
 - Frontend: No.
 
 ### Assumptions / pending
