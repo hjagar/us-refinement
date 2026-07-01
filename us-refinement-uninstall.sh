@@ -51,7 +51,7 @@ fi
 if [ "$EXEC_DIR" = "$CENTRAL_DIR_ABS" ]; then
     [ -e "$SELF" ] && rm -f -- "$SELF"
 else
-    echo "Running from clone - remove uninstall.sh manually if needed."
+    echo "Running from clone - remove us-refinement-uninstall.sh manually if needed."
 fi
 
 echo "Uninstallation completed successfully."

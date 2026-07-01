@@ -60,7 +60,7 @@ if ((Test-Path $hjagarDir) -and -not (Get-ChildItem $hjagarDir -Force)) {
 if ($runningFromCentral -and $PSCommandPath -and (Test-Path $PSCommandPath)) {
     Remove-Item $PSCommandPath -Force
 } else {
-    Write-Host "Running from clone - remove uninstall.ps1 manually if needed." -ForegroundColor Gray
+    Write-Host "Running from clone - remove us-refinement-uninstall.ps1 manually if needed." -ForegroundColor Gray
 }
 
 Write-Host "Uninstallation completed successfully." -ForegroundColor Cyan
