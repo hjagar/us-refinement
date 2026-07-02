@@ -66,16 +66,45 @@ if ($Local) {
     }
     New-Item -ItemType Directory -Path $CentralDir -Force | Out-Null
     
-    # Copy essential skill items
-    Copy-Item -Path (Join-Path $SrcDir "SKILL.md") -Destination $CentralDir -Force
-    if (Test-Path (Join-Path $SrcDir "scripts")) {
-        Copy-Item -Path (Join-Path $SrcDir "scripts") -Destination $CentralDir -Recurse -Force
+    $zipUrl = "https://github.com/hjagar/us-refinement/releases/latest/download/us-refinement.zip"
+    $tempZip = Join-Path $env:TEMP ("us-refinement-" + [System.Guid]::NewGuid().ToString() + ".zip")
+    $downloadSuccess = $false
+    
+    # Try downloading via gh CLI first (useful for private repos)
+    if (Get-Command gh -ErrorAction SilentlyContinue) {
+        try {
+            Write-Host "Downloading latest release ZIP using GitHub CLI..."
+            & gh release download --repo hjagar/us-refinement --pattern "us-refinement.zip" --output $tempZip --clobber 2>$null
+            if ($LASTEXITCODE -eq 0 -and (Test-Path $tempZip)) {
+                $downloadSuccess = $true
+            }
+        } catch {
+            # Ignore and fallback
+        }
     }
-    if (Test-Path (Join-Path $SrcDir "docs")) {
-        Copy-Item -Path (Join-Path $SrcDir "docs") -Destination $CentralDir -Recurse -Force
+    
+    # Fallback to Invoke-WebRequest
+    if (-not $downloadSuccess) {
+        try {
+            Write-Host "Downloading latest release ZIP from public GitHub URL..."
+            Invoke-WebRequest -Uri $zipUrl -OutFile $tempZip -UseBasicParsing
+            $downloadSuccess = $true
+        } catch {
+            Write-Error "Failed to download release ZIP: $_"
+            if (Test-Path $tempZip) { Remove-Item $tempZip -Force }
+            exit 1
+        }
     }
-    if (Test-Path (Join-Path $SrcDir "tests")) {
-        Copy-Item -Path (Join-Path $SrcDir "tests") -Destination $CentralDir -Recurse -Force
+    
+    try {
+        Write-Host "Extracting release ZIP..."
+        Expand-Archive -Path $tempZip -DestinationPath $CentralDir -Force
+    } catch {
+        Write-Error "Failed to extract release ZIP: $_"
+        if (Test-Path $CentralDir) { Remove-Item $CentralDir -Recurse -Force }
+        exit 1
+    } finally {
+        if (Test-Path $tempZip) { Remove-Item $tempZip -Force }
     }
     
     foreach ($agent in $AgentPaths) {

@@ -73,17 +73,52 @@ else
     rm -rf "$CENTRAL_DIR"
     mkdir -p "$CENTRAL_DIR"
     
-    # Copy essential skill items
-    cp "$SRC_DIR/SKILL.md" "$CENTRAL_DIR/"
-    if [ -d "$SRC_DIR/scripts" ]; then
-        cp -r "$SRC_DIR/scripts" "$CENTRAL_DIR/"
+    ZIP_URL="https://github.com/hjagar/us-refinement/releases/latest/download/us-refinement.zip"
+    TEMP_ZIP=$(mktemp --suffix=.zip 2>/dev/null || mktemp /tmp/us-refinement-XXXXXX.zip)
+    
+    DOWNLOAD_SUCCESS=false
+    
+    # Try downloading via gh CLI first (useful for private repos)
+    if command -v gh &>/dev/null; then
+        echo "Downloading latest release ZIP using GitHub CLI..."
+        if gh release download --repo hjagar/us-refinement --pattern "us-refinement.zip" --output "$TEMP_ZIP" --clobber &>/dev/null; then
+            DOWNLOAD_SUCCESS=true
+        fi
     fi
-    if [ -d "$SRC_DIR/docs" ]; then
-        cp -r "$SRC_DIR/docs" "$CENTRAL_DIR/"
+    
+    # Fallback to curl or wget
+    if [ "$DOWNLOAD_SUCCESS" = false ]; then
+        echo "Downloading latest release ZIP from public GitHub URL..."
+        if command -v curl &>/dev/null; then
+            if curl -sSL -o "$TEMP_ZIP" "$ZIP_URL"; then
+                DOWNLOAD_SUCCESS=true
+            fi
+        elif command -v wget &>/dev/null; then
+            if wget -q -O "$TEMP_ZIP" "$ZIP_URL"; then
+                DOWNLOAD_SUCCESS=true
+            fi
+        fi
     fi
-    if [ -d "$SRC_DIR/tests" ]; then
-        cp -r "$SRC_DIR/tests" "$CENTRAL_DIR/"
+    
+    if [ "$DOWNLOAD_SUCCESS" = false ]; then
+        echo "Error: Failed to download release ZIP. Ensure gh CLI is authenticated or curl/wget is installed and has internet access." >&2
+        rm -f "$TEMP_ZIP"
+        exit 1
     fi
+    
+    echo "Extracting release ZIP..."
+    if ! command -v unzip &>/dev/null; then
+        echo "Error: unzip is required but was not found." >&2
+        rm -f "$TEMP_ZIP"
+        exit 1
+    fi
+    if ! unzip -o "$TEMP_ZIP" -d "$CENTRAL_DIR" &>/dev/null; then
+        echo "Error: extraction failed." >&2
+        rm -rf "$CENTRAL_DIR"
+        rm -f "$TEMP_ZIP"
+        exit 1
+    fi
+    rm -f "$TEMP_ZIP"
     
     for agent in "${AGENT_PATHS[@]}"; do
         create_symlink "$agent" "$CENTRAL_DIR"
