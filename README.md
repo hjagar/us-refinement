@@ -27,6 +27,10 @@
    - **Claude Code**: Reference the guidelines in your global `CLAUDE.md`.
    - **Cursor / OpenCode**: Append the rules to your `.cursorrules` file.
 
+### Acknowledgements
+
+Special thanks to [Alan Buscaglia](https://github.com/Gentleman-Programming) ([@Gentleman-Programming](https://github.com/Gentleman-Programming)), creator of [Engram](https://github.com/Gentleman-Programming/engram), for providing the persistent memory backend that makes hybrid and hybrid-delayed storage possible.
+
 ---
 
 ## Español
@@ -51,3 +55,7 @@
    - **Antigravity / Gentle AI**: Añade la ruta del repositorio a tu `skills.json` global.
    - **Claude Code**: Referencia las instrucciones en tu `CLAUDE.md`.
    - **Cursor / OpenCode**: Copia las directivas en tu archivo `.cursorrules`.
+
+### Agradecimientos
+
+Un agradecimiento especial a [Alan Buscaglia](https://github.com/Gentleman-Programming) ([@Gentleman-Programming](https://github.com/Gentleman-Programming)), creador de [Engram](https://github.com/Gentleman-Programming/engram), por proveer el motor de memoria persistente que hace posible el almacenamiento híbrido y diferido (`hybrid-delayed`).
