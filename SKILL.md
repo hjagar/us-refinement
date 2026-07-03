@@ -32,6 +32,17 @@ Two possible sources — detect which one applies:
 3. Use the issue's title + body as the raw user story input for Step 1.
 4. If `gh` is not authenticated or the command fails, tell the user clearly and ask them to paste the story manually instead — do not guess the content.
 
+## Step 0.5: Environment and Storage Setup (MANDATORY)
+
+Before starting the refinement analysis, check the available tools and configure the storage mode:
+1. **Detect Engram**: Check if the `engram` MCP server is active in the current session.
+   - **If active**: Prompt the user to choose their preferred storage mode (with `engram` as the recommended default). Present the following options:
+     - `engram` (memory-only, no local files created)
+     - `openspec` (local files only under the `openspec/changes/` directory)
+     - `hybrid` (both: save to memory and local files in real time)
+     - `hybrid-delayed` (use local files for visualization during the session, saving everything to Engram at the end of the session).
+   - **If inactive**: Check if the workspace contains an active SDD structure (presence of `.agents/` or `openspec/` folders). If yes, default to `openspec` local file storage. Otherwise, default to standard console log output (clipboard fallback).
+
 ## Step 1: Analyze against INVEST criteria
 
 Check the story against these six axes and silently note gaps (don't show this raw analysis to the user — use it to build Step 2's questions):
@@ -128,22 +139,24 @@ scenarios:
 
 ## Step 4: Offer to write back to GitHub (only if the source was a GitHub issue)
 
-If the story came from a GitHub issue (Step 0B), after delivering the refined version ask the user how they want to document it — do not write to GitHub without an explicit choice:
-
-- **Comment (default, non-destructive)**: post the refined story as a comment on the issue, preserving the original body untouched. Good when a human reviewer needs to approve the refinement before work starts.
-  ```
-  gh issue comment <number> --body-file <refined-story.md>
-  ```
-- **Replace the issue body**: overwrite the original description with the refined version (only if the user explicitly prefers this — it loses the original text from the visible body, though GitHub keeps an edit history).
-  ```
-  gh issue edit <number> --body-file <refined-story.md>
-  ```
-
-If the user wants the refinement to be approved by another human before SDD starts, the comment option is the better default — suggest it but let the user pick.
+If the story came from a GitHub issue (Step 0B), verify if the GitHub CLI is available and authenticated by checking `gh auth status` or its path executable.
+- **If authenticated**: Ask the user how they want to document it — do not write to GitHub without an explicit choice:
+  - **Comment (default, non-destructive)**: post the refined story as a comment on the issue, preserving the original body untouched. Good when a human reviewer needs to approve the refinement before work starts.
+    ```
+    gh issue comment <number> --body-file <refined-story.md>
+    ```
+  - **Replace the issue body**: overwrite the original description with the refined version (only if the user explicitly prefers this).
+    ```
+    gh issue edit <number> --body-file <refined-story.md>
+    ```
+- **If unauthenticated or missing**: Inform the user that the GitHub CLI is not available or authenticated, and guide them to manually copy/paste the refined output into the GitHub issue.
 
 ## Step 5: Closing
 
-Deliver the refined story (and confirm the GitHub write-back if applicable) and ask if the user wants to adjust anything, split the story into several (if Step 1 flagged a "Small" violation), or is satisfied to move on to `/sdd-new` on their own.
+Deliver the refined story (and confirm the GitHub write-back if applicable) and:
+1. **Detect SDD Setup**: Check if the current repository contains `.agents/` or `openspec/` folders, or if it is inside an active SDD workspace.
+   - **If found**: Suggest continuing directly with the SDD command `/sdd-new <change-name>` or the exploration phase.
+   - **If not found**: Ask if the user wants to adjust anything, split the story into several (if Step 1 flagged a "Small" violation), or is satisfied to wrap up.
 
 ## Style notes
 
