@@ -4,7 +4,9 @@ $CentralDir = Join-Path $HomeDir ".hjagar\skills\us-refinement"
 $AgentPaths = @(
     (Join-Path $HomeDir ".gemini\skills\us-refinement"),
     (Join-Path $HomeDir ".claude\skills\us-refinement"),
-    (Join-Path $HomeDir ".config\opencode\skills\us-refinement")
+    (Join-Path $HomeDir ".config\opencode\skills\us-refinement"),
+    (Join-Path $HomeDir ".copilot\skills\us-refinement"),
+    (Join-Path $HomeDir ".agents\skills\us-refinement")
 )
 
 Write-Host "Remove us-refinement? This will delete files and remove agent configurations." -ForegroundColor Cyan
