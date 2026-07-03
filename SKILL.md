@@ -43,6 +43,14 @@ Check the story against these six axes and silently note gaps (don't show this r
 - **Small**: is it scoped to a reasonable cycle, or should it be split?
 - **Testable**: can "done" be objectively verified?
 
+## Step 1.5: Technical Feasibility and Component Scan (MANDATORY)
+
+Before asking questions, inspect the system PATH and repository workspace to analyze feasibility:
+1. **Scan for mentioned tools/runtimes**: Scan the raw user story for external dependencies (e.g., `Docker`, `Python`, `gh`, `unzip`, `shellcheck`, `winget`). Use terminal commands (e.g., `where <tool>` on Windows or `command -v <tool>` on Unix/WSL) to check if the tool is installed in the system PATH.
+   - If a tool is missing, record a warning to be appended to the final output.
+2. **Scan for mentioned codebase components/files**: Scan the raw user story for existing files/components (e.g., `installer`, `uninstaller`, `validator`). Search the repository (e.g., via directory list or git searches) to see if matching files exist.
+   - If multiple files match (e.g., both `install.ps1` and `install.sh` when "installer" is mentioned), or if no files match, record a warning to ask a clarification question in Step 2.
+
 ## Step 2: Ask what's missing (flexible gate, NOT blocking)
 
 Group clarification questions into these fixed categories, but only include categories where info is actually missing — don't ask about what's already clear:
@@ -51,6 +59,7 @@ Group clarification questions into these fixed categories, but only include cate
 - **Edge cases / unstated business rules** — unhappy paths, validations, permissions.
 - **Dependencies** — other stories, external services, data that must exist beforehand.
 - **Technical scope** — backend, frontend, both? New UI or pure logic?
+- **Technical Feasibility / Ambiguity** — if Step 1.5 flagged multiple file matches (e.g., both `install.ps1` and `install.sh` for a mentioned component) or zero matches, ask the user to clarify which specific file/component they target.
 
 Present the questions clearly and compactly (not as an endless questionnaire). After presenting them, explicitly offer:
 
@@ -87,6 +96,7 @@ Output format:
 
 ### Dependencies
 - [List of stories, services, or prior data required, or "None identified"]
+- [WARNING: Any missing tool warnings discovered in Step 1.5, e.g., "Tool 'Docker' is mentioned in the story but is missing from the system PATH."]
 
 ### Technical scope
 - Backend: [yes/no — which parts]
@@ -141,3 +151,4 @@ Deliver the refined story (and confirm the GitHub write-back if applicable) and 
 - If the story already comes in well-formed (clear criteria, no ambiguity), say so and don't invent artificial questions just to follow the flow.
 - If the story should be split into two or more (violates "Small" or mixes unrelated features), flag it BEFORE refining, not after.
 - Never fabricate GitHub data. If `gh` returns nothing or fails, say so plainly instead of filling gaps from memory.
+- **Separation of concerns (No implementation code)**: The refined user story must never contain code blocks, scripts, function signatures, directory paths of implementation, or architectural designs. Keep the content strictly focused on what the user/system wants and why, leaving the technical "How" for the design/SDD phase.
