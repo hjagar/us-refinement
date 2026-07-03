@@ -30,6 +30,8 @@ AGENT_PATHS=(
     "$HOME/.gemini/skills/us-refinement"
     "$HOME/.claude/skills/us-refinement"
     "$HOME/.config/opencode/skills/us-refinement"
+    "$HOME/.copilot/skills/us-refinement"
+    "$HOME/.agents/skills/us-refinement"
 )
 
 if [ -z "$SRC_DIR" ]; then
