@@ -1,6 +1,6 @@
 ---
 name: us-refinement
-description: Refines raw user stories before they move to technical design or /sdd-new. Trigger ALWAYS when the user pastes an unrefined user story and asks to refine/clarify/polish it, when the user references a GitHub issue number for refinement (e.g. "refinar la issue #123", "let's refine issue 45"), or when a user story is about to be turned into a technical spec without explicit acceptance criteria. Also trigger on mentions of "criterios de aceptacion", "acceptance criteria", "INVEST", "ready for dev", or "definicion de terminado" in the context of a user story.
+description: Refines user stories. Trigger on manual commands /refine, /refinar. Auto-trigger on raw user stories (As a/Como, I want/Quiero/Quiero poder, So that/Para), GitHub issue references for refinement (e.g., #123, "refinar issue 45"), or agile terms (criterios de aceptación, acceptance criteria, INVEST, ready for dev, definición de terminado).
 ---
 
 # User Story Refinement
@@ -11,10 +11,12 @@ This skill turns a raw user story into a refined version ready for technical des
 
 ## When to activate
 
-- The user pastes a user story (free text, ticket copy, raw description) and asks to refine it.
-- The user references a GitHub issue by number for refinement (see "Reading from GitHub" below).
-- The user is about to run `/sdd-new` or request a technical design and the story has no explicit acceptance criteria, edge cases, or dependencies.
+- The user types the manual shortcuts `/refine` or `/refinar` (optionally followed by issue number or story draft).
+- The user pastes a story draft containing Spanish agile structure elements (e.g., `Como [rol]`, `Quiero [acción]`, `Quiero poder [acción]`, `Para [beneficio]`).
+- The user pastes a story draft containing English agile structure elements (e.g., `As a [role]`, `I want to [action]`, `So that [value]`).
+- The user references a GitHub issue by number for refinement (e.g., "refinar la issue #123", "let's refine issue 45").
 - The user asks whether a story is "ready for dev" or "lista para desarrollo".
+- The user mentions agile terms such as "criterios de aceptación", "acceptance criteria", "INVEST", "definición de terminado", or "definition of done".
 
 ## Step 0: Determine the source of the user story
 
