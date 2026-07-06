@@ -126,8 +126,8 @@ def validate(file_path):
     # 1. Validate ID
     if not data['id']:
         errors.append("Field 'id' is missing.")
-    elif not re.match(r"^US\d+$", str(data['id'])):
-        errors.append(f"Field 'id' value '{data['id']}' must match the pattern US\\d+.")
+    elif not re.match(r"^US-?\d+$", str(data['id'])):
+        errors.append(f"Field 'id' value '{data['id']}' must match the pattern US-?\\d+.")
 
     # 2. Validate Type
     allowed_types = {'feat', 'fix', 'refactor', 'docs', 'chore'}
@@ -147,8 +147,8 @@ def validate(file_path):
         errors.append("Field 'dependencies' must be a list.")
     else:
         for dep in data['dependencies']:
-            if not re.match(r"^US\d+$", str(dep)):
-                errors.append(f"Dependency '{dep}' must match the pattern US\\d+.")
+            if not re.match(r"^US-?\d+$", str(dep)):
+                errors.append(f"Dependency '{dep}' must match the pattern US-?\\d+.")
 
     # 5. Validate Metadata
     metadata = data['metadata']

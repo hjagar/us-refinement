@@ -3,10 +3,10 @@
 This is a valid mock user story.
 
 <!-- [AI-DATA]
-id: US99
+id: US-99
 type: feat
 breaking: false
-dependencies: [US1, US2]
+dependencies: [US-1, US-2]
 metadata:
   scope:
     backend: true
