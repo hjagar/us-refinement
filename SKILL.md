@@ -124,10 +124,10 @@ Output format:
 - [ ] [Second unconfirmed assumption / skipped question mapping]
 
 <!-- [AI-DATA]
-id: US[number]
+id: [US-{issue_number} if sourced from GitHub (Step 0B), e.g., US-24, OR US{number} if sourced from pasted text (Step 0A), e.g., US12]
 type: [feat|fix|refactor|docs|chore]
 breaking: [true|false]
-dependencies: [[ID1, ID2] or []]
+dependencies: [list of referenced story IDs in their exact format, matching hyphens if present, e.g., [US-24, US1] or []]
 metadata:
   scope:
     backend: [true|false]
