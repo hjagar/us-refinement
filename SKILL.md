@@ -78,7 +78,9 @@ Present the questions clearly and compactly (not as an endless questionnaire). A
 
 > "If you'd rather, I can refine the story with what's here and mark these points as pending assumptions, instead of waiting for answers."
 
-**This gate is flexible.** If the user answers, use those answers. If the user says "go ahead anyway", "skip it", "doesn't matter" or similar, proceed to Step 3 regardless — but document every unresolved point as an explicit **assumption** in the output (see format below). Never invent an answer and present it as a confirmed fact.
+**This gate is flexible.** If the user answers, use those answers. If the user says "go ahead anyway", "skip it", "doesn't matter" or similar, proceed to Step 3 regardless.
+
+Every clarification question that remains unanswered or is explicitly skipped by the user must be documented as an individual, unchecked checkbox item (`- [ ]`) in the output's `### Assumptions` section. Never invent an answer and present it as a confirmed fact.
 
 ## Step 3: Generate the refined user story
 
@@ -115,8 +117,9 @@ Output format:
 - Backend: [yes/no — which parts]
 - Frontend: [yes/no — which parts]
 
-### Assumptions / pending
-- [Only if the user chose to proceed without answering something: list each unconfirmed point here, clearly marked as an assumption, NOT as fact]
+### Assumptions
+- [ ] [First unconfirmed assumption / skipped question mapping]
+- [ ] [Second unconfirmed assumption / skipped question mapping]
 
 <!-- [AI-DATA]
 id: US[number]
@@ -138,6 +141,12 @@ scenarios:
     then: "[expected outcomes in English]"
 -->
 ```
+
+### Conditional Rendering Rules for "### Assumptions"
+
+- **Omit section entirely**: If there are no unresolved points (no questions were asked in Step 2, or the user answered all of them), the `### Assumptions` section header and its items must be omitted entirely from the output.
+- **Unchecked checkboxes**: All assumptions must be rendered as unchecked checkboxes (`- [ ]`). Never check them in the generated output.
+- **Re-refinements**: If you are refining a story that already has an `### Assumptions` section in its current body/file, compare the user's new inputs against the existing checkboxes. Remove any checkbox items that have been resolved, and keep only the ones that remain unresolved. If all items are resolved, remove the section completely.
 
 ## Step 4: Offer to write back to GitHub (only if the source was a GitHub issue)
 
