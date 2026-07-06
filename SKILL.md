@@ -160,6 +160,20 @@ If the story came from a GitHub issue (Step 0B), verify if the GitHub CLI is ava
     ```
     gh issue edit <number> --body-file <refined-story.md>
     ```
+
+  Immediately after executing either write-back command, inspect the generated refinement text in memory to check for pending assumptions:
+  - **If the output contains the `### Assumptions` section with at least one unchecked checkbox (`- [ ]`)**:
+    Ensure the label exists and apply it to the issue:
+    ```
+    gh label create needs-review-assumptions --color FBCA04 --description "Issue has pending assumptions that need business review" --force
+    gh issue edit <number> --add-label "needs-review-assumptions"
+    ```
+  - **If the output does not contain the `### Assumptions` section or has no unchecked checkboxes**:
+    Remove the label from the issue (run this non-blockingly, ignoring any warnings if the label is not present):
+    ```
+    gh issue edit <number> --remove-label "needs-review-assumptions"
+    ```
+
 - **If unauthenticated or missing**: Inform the user that the GitHub CLI is not available or authenticated, and guide them to manually copy/paste the refined output into the GitHub issue.
 
 ## Step 5: Closing
