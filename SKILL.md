@@ -11,7 +11,7 @@ This skill turns a raw user story into a refined version ready for technical des
 
 ## When to activate
 
-- The user types the manual shortcuts `/refine` or `/refinar` (optionally followed by issue number or story draft).
+- The user types the manual shortcuts `/refine` or `/refinar` (optionally followed by the `--deep` flag, issue number, or story draft, e.g., `/refine --deep 22` or `/refinar --deep`).
 - The user pastes a story draft containing Spanish agile structure elements (e.g., `Como [rol]`, `Quiero [acción]`, `Quiero poder [acción]`, `Para [beneficio]`).
 - The user pastes a story draft containing English agile structure elements (e.g., `As a [role]`, `I want to [action]`, `So that [value]`).
 - The user references a GitHub issue by number for refinement (e.g., "refinar la issue #123", "let's refine issue 45").
@@ -56,9 +56,11 @@ Check the story against these six axes and silently note gaps (don't show this r
 - **Small**: is it scoped to a reasonable cycle, or should it be split?
 - **Testable**: can "done" be objectively verified?
 
-## Step 1.5: Technical Feasibility and Component Scan (MANDATORY)
+## Step 1.5: Technical Feasibility and Component Scan (OPT-IN ONLY)
 
-Before asking questions, inspect the system PATH and repository workspace to analyze feasibility:
+This step runs ONLY if the user explicitly provided the `--deep` flag in their manual trigger (e.g., `/refine --deep`). If running in Standard Mode (without `--deep`), skip this step entirely and do NOT execute any system or shell commands.
+
+When running in Deep Mode (`--deep`), inspect the system PATH and repository workspace to analyze feasibility before asking questions:
 1. **Scan for mentioned tools/runtimes**: Scan the raw user story for external dependencies (e.g., `Docker`, `Python`, `gh`, `unzip`, `shellcheck`, `winget`). Use terminal commands (e.g., `where <tool>` on Windows or `command -v <tool>` on Unix/WSL) to check if the tool is installed in the system PATH.
    - If a tool is missing, record a warning to be appended to the final output.
 2. **Scan for mentioned codebase components/files**: Scan the raw user story for existing files/components (e.g., `installer`, `uninstaller`, `validator`). Search the repository (e.g., via directory list or git searches) to see if matching files exist.
@@ -72,7 +74,7 @@ Group clarification questions into these fixed categories, but only include cate
 - **Edge cases / unstated business rules** — unhappy paths, validations, permissions.
 - **Dependencies** — other stories, external services, data that must exist beforehand.
 - **Technical scope** — backend, frontend, both? New UI or pure logic?
-- **Technical Feasibility / Ambiguity** — if Step 1.5 flagged multiple file matches (e.g., both `install.ps1` and `install.sh` for a mentioned component) or zero matches, ask the user to clarify which specific file/component they target.
+- **Technical Feasibility / Ambiguity** — (Only if running in Deep Mode `--deep` and Step 1.5 flagged multiple file matches or zero matches): ask the user to clarify which specific file/component they target. If running in Standard Mode, do not include this category.
 
 Present the questions clearly and compactly (not as an endless questionnaire). After presenting them, explicitly offer:
 
@@ -147,6 +149,14 @@ scenarios:
 - **Omit section entirely**: If there are no unresolved points (no questions were asked in Step 2, or the user answered all of them), the `### Assumptions` section header and its items must be omitted entirely from the output.
 - **Unchecked checkboxes**: All assumptions must be rendered as unchecked checkboxes (`- [ ]`). Never check them in the generated output.
 - **Re-refinements**: If you are refining a story that already has an `### Assumptions` section in its current body/file, compare the user's new inputs against the existing checkboxes. Remove any checkbox items that have been resolved, and keep only the ones that remain unresolved. If all items are resolved, remove the section completely.
+
+### Contextual Hint for Deep Mode (Standard Mode only)
+- If running in Standard Mode (without `--deep`) and the raw user story mentions external tools (e.g., Docker, Python, gh, unzip, shellcheck, winget) or codebase files/components (e.g., installer, uninstaller, validator, script), append a non-intrusive GitHub-style tip alert at the very end of the markdown file (after the HTML comments block or as part of the output text):
+  ```markdown
+  > [!TIP]
+  > This story mentions external tools or files (e.g., [tool/file names]). You can run `/refine --deep` or `/refinar --deep` to scan your system PATH and workspace for technical feasibility.
+  ```
+  This tip must be based solely on a text-only scan of the input story — do NOT execute any system or shell commands to verify their presence when in Standard Mode.
 
 ## Step 4: Offer to write back to GitHub (only if the source was a GitHub issue)
 
