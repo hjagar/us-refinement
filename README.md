@@ -18,10 +18,37 @@
 
 ### Quick Start
 
-1. Clone this repository into your projects directory:
+Choose one of the following installation methods:
+
+#### A. Remote Installation (Recommended)
+Run the remote script directly from GitHub without cloning the repository. This will download the latest stable release ZIP and link it to all detected agents.
+
+* **Windows (PowerShell)**:
+  ```powershell
+  irm https://raw.githubusercontent.com/hjagar/us-refinement/main/install.ps1 | iex
+  ```
+* **macOS / Linux (Bash)**:
+  ```bash
+  curl -sSL https://raw.githubusercontent.com/hjagar/us-refinement/main/install.sh | bash
+  ```
+
+#### B. Manual Local Installation (Development)
+If you want to contribute or run in local/development mode:
+1. Clone this repository:
    ```bash
    git clone https://github.com/hjagar/us-refinement.git
+   cd us-refinement
    ```
+2. Run the installer script locally:
+   * **Windows (PowerShell)**:
+     ```powershell
+     .\install.ps1 -Local
+     ```
+   * **macOS / Linux (Bash)**:
+     ```bash
+     ./install.sh --local
+     ```
+
 2. Configure it globally for your specific AI agent:
    - **Antigravity / Gentle AI**: Add the repository path to your global `skills.json`.
    - **Claude Code**: Reference the guidelines in your global `CLAUDE.md`.
@@ -47,10 +74,37 @@ Special thanks to [Alan Buscaglia](https://github.com/Gentleman-Programming) ([@
 
 ### Instalación rápida
 
-1. Clona este repositorio en tu directorio de proyectos:
+Elegí uno de los siguientes métodos de instalación:
+
+#### A. Instalación remota (Recomendado)
+Ejecutá el instalador directamente desde GitHub sin necesidad de clonar el repositorio. Esto descargará la última versión estable (ZIP) y la enlazará con todos los agentes detectados.
+
+* **Windows (PowerShell)**:
+  ```powershell
+  irm https://raw.githubusercontent.com/hjagar/us-refinement/main/install.ps1 | iex
+  ```
+* **macOS / Linux (Bash)**:
+  ```bash
+  curl -sSL https://raw.githubusercontent.com/hjagar/us-refinement/main/install.sh | bash
+  ```
+
+#### B. Instalación local manual (Desarrollo)
+Si querés colaborar con el proyecto o correr en modo local/desarrollo:
+1. Cloná este repositorio:
    ```bash
    git clone https://github.com/hjagar/us-refinement.git
+   cd us-refinement
    ```
+2. Ejecutá el instalador de forma local:
+   * **Windows (PowerShell)**:
+     ```powershell
+     .\install.ps1 -Local
+     ```
+   * **macOS / Linux (Bash)**:
+     ```bash
+     ./install.sh --local
+     ```
+
 2. Agrégalo a tus configuraciones globales según tu agente de IA:
    - **Antigravity / Gentle AI**: Añade la ruta del repositorio a tu `skills.json` global.
    - **Claude Code**: Referencia las instrucciones en tu `CLAUDE.md`.
