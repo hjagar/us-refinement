@@ -27,39 +27,28 @@ $AgentPaths = @(
 
 $SrcDir = if ($Path) { Resolve-Path $Path } else { $PSScriptRoot }
 
-# 3. Directory Link Helper
-function New-Link ($targetPath, $sourcePath) {
-    $parentDir = Split-Path $targetPath
-    if (-not (Test-Path $parentDir)) {
-        New-Item -ItemType Directory -Path $parentDir -Force | Out-Null
-    }
-    
+# 3. Directory Copy Helper
+function Copy-SkillFile ($targetPath, $sourcePath) {
     if (Test-Path $targetPath) {
-        $item = Get-Item $targetPath
-        if ($item.LinkType -eq "Junction" -or $item.LinkType -eq "SymbolicLink") {
-            if ($item.Target -eq $sourcePath) {
-                Write-Host "Link already exists and points to the correct target: $targetPath -> $sourcePath"
-                return
-            } else {
-                Write-Host "Link points to a different target ($($item.Target)). Recreating..."
-                Remove-Item -Path $targetPath -Recurse -Force
-            }
-        } else {
-            Write-Host "Physical directory found at $targetPath. Removing to replace with link..."
-            Remove-Item -Path $targetPath -Recurse -Force
-        }
+        Remove-Item -Path $targetPath -Force -Recurse | Out-Null
     }
+    New-Item -ItemType Directory -Path $targetPath -Force | Out-Null
     
-    Write-Host "Creating Junction: $targetPath -> $sourcePath"
-    # Create Junction to prevent requiring elevation
-    New-Item -ItemType Junction -Path $targetPath -Value $sourcePath | Out-Null
+    $srcFile = Join-Path $sourcePath "SKILL.md"
+    if (Test-Path $srcFile) {
+        Write-Host "Copying SKILL.md to: $targetPath"
+        Copy-Item -Path $srcFile -Destination $targetPath -Force
+    } else {
+        Write-Error "Error: SKILL.md not found at $sourcePath"
+        exit 1
+    }
 }
 
 # 4. Installation Logic
 if ($Local) {
     Write-Host "Installing us-refinement in LOCAL Mode..."
     foreach ($agent in $AgentPaths) {
-        New-Link $agent $SrcDir
+        Copy-SkillFile $agent $SrcDir
     }
 } else {
     Write-Host "Installing us-refinement in GLOBAL Mode..."
@@ -110,7 +99,7 @@ if ($Local) {
     }
     
     foreach ($agent in $AgentPaths) {
-        New-Link $agent $CentralDir
+        Copy-SkillFile $agent $CentralDir
     }
 }
 
