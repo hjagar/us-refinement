@@ -38,37 +38,29 @@ if [ -z "$SRC_DIR" ]; then
     SRC_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 fi
 
-# 3. Symlink Helper
-create_symlink() {
+# 3. File Copy Helper
+copy_skill_file() {
     local target="$1"
     local source="$2"
+    
     mkdir -p "$(dirname "$target")"
+    rm -rf "$target"
+    mkdir -p "$target"
     
-    if [ -e "$target" ] || [ -L "$target" ]; then
-        if [ -L "$target" ]; then
-            local current_target
-            current_target=$(readlink "$target")
-            if [ "$current_target" = "$source" ]; then
-                echo "Link already exists and points to the correct target: $target -> $source"
-                return
-            fi
-            echo "Link points to a different target ($current_target). Recreating..."
-            rm "$target"
-        else
-            echo "Physical folder found at $target. Removing to replace with symlink..."
-            rm -rf "$target"
-        fi
+    if [ -f "$source/SKILL.md" ]; then
+        echo "Copying SKILL.md to: $target"
+        cp "$source/SKILL.md" "$target/"
+    else
+        echo "Error: SKILL.md not found at $source" >&2
+        exit 1
     fi
-    
-    echo "Creating Symlink: $target -> $source"
-    ln -s "$source" "$target"
 }
 
 # 4. Installation Logic
 if [ "$LOCAL" = true ]; then
     echo "Installing us-refinement in LOCAL Mode..."
     for agent in "${AGENT_PATHS[@]}"; do
-        create_symlink "$agent" "$SRC_DIR"
+        copy_skill_file "$agent" "$SRC_DIR"
     done
 else
     echo "Installing us-refinement in GLOBAL Mode..."
@@ -123,7 +115,7 @@ else
     rm -f "$TEMP_ZIP"
     
     for agent in "${AGENT_PATHS[@]}"; do
-        create_symlink "$agent" "$CENTRAL_DIR"
+        copy_skill_file "$agent" "$CENTRAL_DIR"
     done
 fi
 

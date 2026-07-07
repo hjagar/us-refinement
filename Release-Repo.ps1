@@ -95,8 +95,7 @@ New-Item -ItemType Directory -Path $buildDir | Out-Null
 $items = @(
     (Join-Path $repoRoot "SKILL.md"),
     (Join-Path $repoRoot "us-refinement-uninstall.ps1"),
-    (Join-Path $repoRoot "us-refinement-uninstall.sh"),
-    (Join-Path $repoRoot "scripts")
+    (Join-Path $repoRoot "us-refinement-uninstall.sh")
 )
 Compress-Archive -Path $items -DestinationPath $zipPath -Force
 Write-Host "  Created build/us-refinement.zip" -ForegroundColor Green

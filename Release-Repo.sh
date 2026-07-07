@@ -78,7 +78,7 @@ ZIP_PATH="$BUILD_DIR/us-refinement.zip"
 rm -rf "$BUILD_DIR"
 mkdir -p "$BUILD_DIR"
 
-zip -r "$ZIP_PATH" SKILL.md us-refinement-uninstall.ps1 us-refinement-uninstall.sh scripts
+zip -r "$ZIP_PATH" SKILL.md us-refinement-uninstall.ps1 us-refinement-uninstall.sh
 echo "  Created build/us-refinement.zip"
 
 echo "[4/5] Tag + push..."
