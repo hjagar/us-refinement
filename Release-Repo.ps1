@@ -8,19 +8,19 @@ $ErrorActionPreference = "Stop"
 
 Write-Host "=== Release-Repo ===" -ForegroundColor Cyan
 
-$repoRoot = (git rev-parse --show-toplevel).Trim()
+$repoRoot = ([string](git rev-parse --show-toplevel)).Trim()
 Set-Location $repoRoot
 
 # [1/5] Quality gate
 Write-Host "[1/5] Quality gate..." -ForegroundColor Cyan
 
 # Safety pre-flight checks
-$currentBranch = (git branch --show-current).Trim()
+$currentBranch = ([string](git branch --show-current)).Trim()
 if ($currentBranch -ne "main") {
     Write-Host "Error: Releases must be created from the main branch. Current branch is: $currentBranch" -ForegroundColor Red
     exit 1
 }
-$gitStatus = (git status --porcelain).Trim()
+$gitStatus = ([string](git status --porcelain)).Trim()
 if (-not [string]::IsNullOrEmpty($gitStatus)) {
     Write-Host "Error: Working tree is dirty. Commit or stash changes before releasing." -ForegroundColor Red
     exit 1
