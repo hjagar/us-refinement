@@ -14,6 +14,18 @@ Set-Location $repoRoot
 # [1/5] Quality gate
 Write-Host "[1/5] Quality gate..." -ForegroundColor Cyan
 
+# Safety pre-flight checks
+$currentBranch = (git branch --show-current).Trim()
+if ($currentBranch -ne "main") {
+    Write-Host "Error: Releases must be created from the main branch. Current branch is: $currentBranch" -ForegroundColor Red
+    exit 1
+}
+$gitStatus = (git status --porcelain).Trim()
+if (-not [string]::IsNullOrEmpty($gitStatus)) {
+    Write-Host "Error: Working tree is dirty. Commit or stash changes before releasing." -ForegroundColor Red
+    exit 1
+}
+
 # Prerequisites checks
 if (-not (Get-Command shellcheck -ErrorAction SilentlyContinue)) {
     Write-Host "shellcheck not found. Install: winget install koalaman.shellcheck" -ForegroundColor Red
@@ -87,30 +99,36 @@ if ($confirm -notin @('y','Y')) {
 
 # [3/5] Package
 Write-Host "[3/5] Packaging..." -ForegroundColor Cyan
+
+# Inject tag version in local SKILL.md directly in workspace
+$workspaceSkill = Join-Path $repoRoot "SKILL.md"
+$content = Get-Content $workspaceSkill -Raw
+if ($content -match '<!-- version: v[\d\.]+ -->') {
+    $content = $content -replace '<!-- version: v[\d\.]+ -->', "<!-- version: $nextVersion -->"
+} else {
+    $content = "<!-- version: $nextVersion -->`n" + $content
+}
+Set-Content -Path $workspaceSkill -Value $content -NoNewline
+
+# Commit version bump to workspace git history
+Write-Host "  Creating version bump commit..." -ForegroundColor Gray
+git add SKILL.md
+git commit -m "chore(release): bump version to $nextVersion" | Out-Null
+
 $buildDir = Join-Path $repoRoot 'build'
 $zipPath  = Join-Path $buildDir 'us-refinement.zip'
 if (Test-Path $buildDir) { Remove-Item $buildDir -Recurse -Force }
 New-Item -ItemType Directory -Path $buildDir | Out-Null
 
 # Copy source files to build directory
-Copy-Item -Path (Join-Path $repoRoot "SKILL.md") -Destination $buildDir
+Copy-Item -Path $workspaceSkill -Destination $buildDir
 Copy-Item -Path (Join-Path $repoRoot "us-refinement-uninstall.ps1") -Destination $buildDir
 Copy-Item -Path (Join-Path $repoRoot "us-refinement-uninstall.sh") -Destination $buildDir
 Copy-Item -Path (Join-Path $repoRoot "update.ps1") -Destination $buildDir
 Copy-Item -Path (Join-Path $repoRoot "update.sh") -Destination $buildDir
 
-# Inject tag version in SKILL.md
-$buildSkill = Join-Path $buildDir "SKILL.md"
-$content = Get-Content $buildSkill -Raw
-if ($content -match '<!-- version: v[\d\.]+ -->') {
-    $content = $content -replace '<!-- version: v[\d\.]+ -->', "<!-- version: $nextVersion -->"
-} else {
-    $content = "<!-- version: $nextVersion -->`n" + $content
-}
-Set-Content -Path $buildSkill -Value $content -NoNewline
-
 $items = @(
-    $buildSkill,
+    (Join-Path $buildDir "SKILL.md"),
     (Join-Path $buildDir "us-refinement-uninstall.ps1"),
     (Join-Path $buildDir "us-refinement-uninstall.sh"),
     (Join-Path $buildDir "update.ps1"),
@@ -123,7 +141,7 @@ Write-Host "  Created build/us-refinement.zip" -ForegroundColor Green
 Write-Host "[4/5] Tag + push..." -ForegroundColor Cyan
 git tag -a $nextVersion -m "Release $nextVersion"
 if ($LASTEXITCODE -ne 0) { Write-Host "git tag failed." -ForegroundColor Red; exit 1 }
-git push --follow-tags
+git push origin main --follow-tags
 if ($LASTEXITCODE -ne 0) { Write-Host "git push failed." -ForegroundColor Red; exit 1 }
 Write-Host "  Tagged and pushed $nextVersion." -ForegroundColor Green
 

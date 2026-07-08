@@ -22,6 +22,18 @@ REPO_ROOT=$(git rev-parse --show-toplevel)
 cd "$REPO_ROOT"
 
 echo "[1/5] Quality gate..."
+
+# Safety pre-flight checks
+current_branch=$(git branch --show-current)
+if [ "$current_branch" != "main" ]; then
+    echo "Error: Releases must be created from the main branch. Current branch is: $current_branch" >&2
+    exit 1
+fi
+if [ -n "$(git status --porcelain)" ]; then
+    echo "Error: Working tree is dirty. Commit or stash changes before releasing." >&2
+    exit 1
+fi
+
 GATE_FAILED=false
 for f in *.sh; do
     [[ -f "$f" ]] || continue
@@ -73,6 +85,19 @@ if [[ ! "$CONFIRM" =~ ^[Yy]$ ]]; then
 fi
 
 echo "[3/5] Packaging..."
+
+# Inject tag version directly in workspace SKILL.md
+if grep -q "<!-- version: v[0-9.]* -->" "SKILL.md"; then
+    sed -i.bak "s/<!-- version: v[0-9.]* -->/<!-- version: $NEXT_VERSION -->/g" "SKILL.md" && rm "SKILL.md.bak"
+else
+    echo -e "<!-- version: $NEXT_VERSION -->\n$(cat "SKILL.md")" > "SKILL.md"
+fi
+
+# Commit version bump to workspace git history
+echo "  Creating version bump commit..."
+git add SKILL.md
+git commit -m "chore(release): bump version to $NEXT_VERSION" >/dev/null
+
 BUILD_DIR="$REPO_ROOT/build"
 ZIP_PATH="$BUILD_DIR/us-refinement.zip"
 rm -rf "$BUILD_DIR"
@@ -85,13 +110,6 @@ cp us-refinement-uninstall.sh "$BUILD_DIR/"
 cp update.ps1 "$BUILD_DIR/"
 cp update.sh "$BUILD_DIR/"
 
-# Inject tag version in SKILL.md
-if grep -q "<!-- version: v[0-9.]* -->" "$BUILD_DIR/SKILL.md"; then
-    sed -i.bak "s/<!-- version: v[0-9.]* -->/<!-- version: $NEXT_VERSION -->/g" "$BUILD_DIR/SKILL.md" && rm "$BUILD_DIR/SKILL.md.bak"
-else
-    echo -e "<!-- version: $NEXT_VERSION -->\n$(cat "$BUILD_DIR/SKILL.md")" > "$BUILD_DIR/SKILL.md"
-fi
-
 cd "$BUILD_DIR"
 zip -r "$ZIP_PATH" SKILL.md us-refinement-uninstall.ps1 us-refinement-uninstall.sh update.ps1 update.sh
 cd "$REPO_ROOT"
@@ -102,7 +120,7 @@ if ! git tag -a "$NEXT_VERSION" -m "Release $NEXT_VERSION"; then
     echo "git tag failed. Aborting."
     exit 1
 fi
-if ! git push --follow-tags; then
+if ! git push origin main --follow-tags; then
     echo "git push failed. Aborting."
     exit 1
 fi
