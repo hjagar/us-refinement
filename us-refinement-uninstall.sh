@@ -13,6 +13,13 @@ AGENT_PATHS=(
     "$HOME/.agents/skills/us-refinement"
 )
 
+# Dynamic multi-account .claude-* detection
+for d in "$HOME"/.claude-*; do
+    if [ -d "$d" ]; then
+        AGENT_PATHS+=("$d/skills/us-refinement")
+    fi
+done
+
 # Remove agent paths
 for agent in "${AGENT_PATHS[@]}"; do
     if [ -L "$agent" ] || [ -e "$agent" ]; then

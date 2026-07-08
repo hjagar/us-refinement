@@ -17,13 +17,18 @@ if (-not (Get-Command gh -ErrorAction SilentlyContinue)) {
 # 2. Path Setup
 $HomeDir = $env:USERPROFILE
 $CentralDir = Join-Path $HomeDir ".hjagar\skills\us-refinement"
-$AgentPaths = @(
-    (Join-Path $HomeDir ".gemini\skills\us-refinement"),
-    (Join-Path $HomeDir ".claude\skills\us-refinement"),
-    (Join-Path $HomeDir ".config\opencode\skills\us-refinement"),
-    (Join-Path $HomeDir ".copilot\skills\us-refinement"),
-    (Join-Path $HomeDir ".agents\skills\us-refinement")
-)
+$AgentPaths = [System.Collections.Generic.List[string]]::new()
+$AgentPaths.Add((Join-Path $HomeDir ".gemini\skills\us-refinement"))
+$AgentPaths.Add((Join-Path $HomeDir ".claude\skills\us-refinement"))
+$AgentPaths.Add((Join-Path $HomeDir ".config\opencode\skills\us-refinement"))
+$AgentPaths.Add((Join-Path $HomeDir ".copilot\skills\us-refinement"))
+$AgentPaths.Add((Join-Path $HomeDir ".agents\skills\us-refinement"))
+
+if (Test-Path $HomeDir) {
+    Get-ChildItem -Path $HomeDir -Filter ".claude-*" -Directory -ErrorAction SilentlyContinue | ForEach-Object {
+        $AgentPaths.Add((Join-Path $_.FullName "skills\us-refinement"))
+    }
+}
 
 $SrcDir = if ($Path) { Resolve-Path $Path } else { $PSScriptRoot }
 
