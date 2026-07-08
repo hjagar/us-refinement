@@ -92,10 +92,29 @@ $zipPath  = Join-Path $buildDir 'us-refinement.zip'
 if (Test-Path $buildDir) { Remove-Item $buildDir -Recurse -Force }
 New-Item -ItemType Directory -Path $buildDir | Out-Null
 
+# Copy source files to build directory
+Copy-Item -Path (Join-Path $repoRoot "SKILL.md") -Destination $buildDir
+Copy-Item -Path (Join-Path $repoRoot "us-refinement-uninstall.ps1") -Destination $buildDir
+Copy-Item -Path (Join-Path $repoRoot "us-refinement-uninstall.sh") -Destination $buildDir
+Copy-Item -Path (Join-Path $repoRoot "update.ps1") -Destination $buildDir
+Copy-Item -Path (Join-Path $repoRoot "update.sh") -Destination $buildDir
+
+# Inject tag version in SKILL.md
+$buildSkill = Join-Path $buildDir "SKILL.md"
+$content = Get-Content $buildSkill -Raw
+if ($content -match '<!-- version: v[\d\.]+ -->') {
+    $content = $content -replace '<!-- version: v[\d\.]+ -->', "<!-- version: $nextVersion -->"
+} else {
+    $content = "<!-- version: $nextVersion -->`n" + $content
+}
+Set-Content -Path $buildSkill -Value $content -NoNewline
+
 $items = @(
-    (Join-Path $repoRoot "SKILL.md"),
-    (Join-Path $repoRoot "us-refinement-uninstall.ps1"),
-    (Join-Path $repoRoot "us-refinement-uninstall.sh")
+    $buildSkill,
+    (Join-Path $buildDir "us-refinement-uninstall.ps1"),
+    (Join-Path $buildDir "us-refinement-uninstall.sh"),
+    (Join-Path $buildDir "update.ps1"),
+    (Join-Path $buildDir "update.sh")
 )
 Compress-Archive -Path $items -DestinationPath $zipPath -Force
 Write-Host "  Created build/us-refinement.zip" -ForegroundColor Green

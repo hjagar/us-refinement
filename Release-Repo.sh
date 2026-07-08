@@ -78,7 +78,23 @@ ZIP_PATH="$BUILD_DIR/us-refinement.zip"
 rm -rf "$BUILD_DIR"
 mkdir -p "$BUILD_DIR"
 
-zip -r "$ZIP_PATH" SKILL.md us-refinement-uninstall.ps1 us-refinement-uninstall.sh
+# Copy source files to build directory
+cp SKILL.md "$BUILD_DIR/"
+cp us-refinement-uninstall.ps1 "$BUILD_DIR/"
+cp us-refinement-uninstall.sh "$BUILD_DIR/"
+cp update.ps1 "$BUILD_DIR/"
+cp update.sh "$BUILD_DIR/"
+
+# Inject tag version in SKILL.md
+if grep -q "<!-- version: v[0-9.]* -->" "$BUILD_DIR/SKILL.md"; then
+    sed -i.bak "s/<!-- version: v[0-9.]* -->/<!-- version: $NEXT_VERSION -->/g" "$BUILD_DIR/SKILL.md" && rm "$BUILD_DIR/SKILL.md.bak"
+else
+    echo -e "<!-- version: $NEXT_VERSION -->\n$(cat "$BUILD_DIR/SKILL.md")" > "$BUILD_DIR/SKILL.md"
+fi
+
+cd "$BUILD_DIR"
+zip -r "$ZIP_PATH" SKILL.md us-refinement-uninstall.ps1 us-refinement-uninstall.sh update.ps1 update.sh
+cd "$REPO_ROOT"
 echo "  Created build/us-refinement.zip"
 
 echo "[4/5] Tag + push..."

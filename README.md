@@ -54,6 +54,17 @@ If you want to contribute or run in local/development mode:
    - **Claude Code**: Reference the guidelines in your global `CLAUDE.md`.
    - **Cursor / OpenCode**: Append the rules to your `.cursorrules` file.
 
+#### C. Updating
+To update the skill to the latest version available on GitHub:
+* **Windows (PowerShell)**:
+  ```powershell
+  & "$HOME\.hjagar\skills\us-refinement\update.ps1"
+  ```
+* **macOS / Linux (Bash)**:
+  ```bash
+  "$HOME/.hjagar/skills/us-refinement/update.sh"
+  ```
+
 ### Acknowledgements
 
 Special thanks to [Alan Buscaglia](https://github.com/Gentleman-Programming) ([@Gentleman-Programming](https://github.com/Gentleman-Programming)), creator of [Engram](https://github.com/Gentleman-Programming/engram), for providing the persistent memory backend that makes hybrid and hybrid-delayed storage possible.
@@ -109,6 +120,17 @@ Si querés colaborar con el proyecto o correr en modo local/desarrollo:
    - **Antigravity / Gentle AI**: Añade la ruta del repositorio a tu `skills.json` global.
    - **Claude Code**: Referencia las instrucciones en tu `CLAUDE.md`.
    - **Cursor / OpenCode**: Copia las directivas en tu archivo `.cursorrules`.
+
+#### C. Actualización
+Para actualizar el skill a la última versión disponible en GitHub:
+* **Windows (PowerShell)**:
+  ```powershell
+  & "$HOME\.hjagar\skills\us-refinement\update.ps1"
+  ```
+* **macOS / Linux (Bash)**:
+  ```bash
+  "$HOME/.hjagar/skills/us-refinement/update.sh"
+  ```
 
 ### Agradecimientos
 
