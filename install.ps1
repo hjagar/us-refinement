@@ -4,6 +4,8 @@ param(
     [string]$Path
 )
 
+$ErrorActionPreference = "Stop"
+
 # 1. Prerequisites Check
 Write-Host "Checking prerequisites..."
 if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
@@ -32,21 +34,40 @@ if (Test-Path $HomeDir) {
 
 $SrcDir = if ($Path) { Resolve-Path $Path } else { $PSScriptRoot }
 
-# 3. Directory Copy Helper
+# 3. Payload Copy Helper (SKILL.md + scripts/ + tests/ — docs/ excluded on purpose)
+# Stages the payload in a sibling ".staging" dir and swaps it into place only after every
+# copy succeeds, so a mid-copy failure leaves the existing installed payload untouched.
 function Copy-SkillFile ($targetPath, $sourcePath) {
-    if (Test-Path $targetPath) {
-        Remove-Item -Path $targetPath -Force -Recurse | Out-Null
+    $stagingPath = "$targetPath.staging"
+    if (Test-Path $stagingPath) {
+        Remove-Item -Path $stagingPath -Force -Recurse | Out-Null
     }
-    New-Item -ItemType Directory -Path $targetPath -Force | Out-Null
-    
+    New-Item -ItemType Directory -Path $stagingPath -Force | Out-Null
+
     $srcFile = Join-Path $sourcePath "SKILL.md"
     if (Test-Path $srcFile) {
         Write-Host "Copying SKILL.md to: $targetPath"
-        Copy-Item -Path $srcFile -Destination $targetPath -Force
+        Copy-Item -Path $srcFile -Destination $stagingPath -Force
     } else {
         Write-Error "Error: SKILL.md not found at $sourcePath"
+        Remove-Item -Path $stagingPath -Force -Recurse | Out-Null
         exit 1
     }
+
+    foreach ($dir in @("scripts", "tests")) {
+        $srcDir = Join-Path $sourcePath $dir
+        if (Test-Path $srcDir) {
+            Write-Host "Copying $dir/ to: $targetPath"
+            Copy-Item -Path $srcDir -Destination $stagingPath -Recurse -Force
+        } else {
+            Write-Warning "Warning: $dir/ not found at $sourcePath - skipping."
+        }
+    }
+
+    if (Test-Path $targetPath) {
+        Remove-Item -Path $targetPath -Force -Recurse | Out-Null
+    }
+    Move-Item -Path $stagingPath -Destination $targetPath
 }
 
 # 4. Installation Logic

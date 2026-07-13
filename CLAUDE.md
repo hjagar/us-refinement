@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this repo is
 
-`us-refinement` is not an application — it's a portable **AI agent skill** (a `SKILL.md` contract) that refines raw user stories into structured, INVEST-checked specs with Given/When/Then acceptance criteria, before they go to technical design or `/sdd-new`. The repo ships the skill itself plus installers that deploy it as a symlinked/junctioned skill directory for multiple AI agents (Claude Code, Gemini/Antigravity, OpenCode).
+`us-refinement` is not an application — it's a portable **AI agent skill** (a `SKILL.md` contract) that refines raw user stories into structured, INVEST-checked specs with Given/When/Then acceptance criteria, before they go to technical design or `/sdd-new`. The repo ships the skill itself plus installers that copy it into a skill directory for multiple AI agents (Claude Code, Gemini/Antigravity, OpenCode).
 
 The actual "product" of this repo is `SKILL.md`. Everything else (installers, validator script, docs) supports authoring, distributing, and verifying that one file.
 
@@ -19,7 +19,7 @@ python scripts/validate_refinement.py tests/mock_invalid_us.md   # expect exit 1
 ```
 Run this after editing the `<!-- [AI-DATA] -->` schema in `SKILL.md` (Step 3 output format) or the parser in `scripts/validate_refinement.py` to confirm they stay in sync — there are no automated test files beyond these two mocks.
 
-**Install the skill locally for testing** (creates a junction/symlink, so edits to this repo are picked up live by the installed agent):
+**Install the skill locally for testing** (copies `SKILL.md`, `scripts/`, and `tests/` from this checkout directly, so re-running the installer after local edits keeps each agent's copy in sync):
 ```powershell
 ./install.ps1 -Local
 ```
@@ -27,14 +27,14 @@ Run this after editing the `<!-- [AI-DATA] -->` schema in `SKILL.md` (Step 3 out
 ./install.sh --local
 ```
 
-**Install globally** (copies `SKILL.md`, `scripts/`, `docs/`, `tests/` into `~/.hjagar/skills/us-refinement`, then links each agent's skill dir to that central copy):
+**Install globally** (downloads the latest release ZIP — `SKILL.md`, `scripts/`, `tests/` — into `~/.hjagar/skills/us-refinement`, then copies from that central store to each agent's skill dir):
 ```powershell
 ./install.ps1
 ```
 ```bash
 ./install.sh
 ```
-Use `-Path <dir>` / `--path <dir>` to install from a source directory other than the script's own location.
+Use `-Path <dir>` / `--path <dir>` with local mode to install from a source directory other than the script's own location (global mode always installs from the downloaded release, ignoring this flag).
 
 ## Architecture
 
@@ -57,10 +57,10 @@ Every refined story output ends with a hidden `<!-- [AI-DATA] ... -->` HTML comm
 
 Both scripts implement the same two install modes and must be kept behaviorally identical:
 
-- **Local mode** (`-Local`/`--local`): links each supported agent's skill directory directly to *this* source checkout (Windows: directory **junction**, chosen specifically to avoid requiring admin elevation; Unix: symlink). Live edits in this repo apply immediately to all linked agents.
-- **Global mode** (default): copies `SKILL.md`, `scripts/`, `docs/`, `tests/` into a central `~/.hjagar/skills/us-refinement`, then links every agent path to that central copy instead of to the repo. `openspec/`, `.git/`, and `.gitignore` are intentionally excluded from this copy to keep the installed payload minimal.
+- **Local mode** (`-Local`/`--local`): copies `SKILL.md`, `scripts/`, and `tests/` from *this* source checkout directly into each supported agent's skill directory. `docs/` is intentionally excluded. Re-run the installer after local edits to refresh the copies — there is no live link.
+- **Global mode** (default): downloads the latest GitHub release ZIP (built by `Release-Repo.ps1`/`Release-Repo.sh`, which package `SKILL.md`, `scripts/`, `tests/`, plus the update/uninstall scripts) into a central `~/.hjagar/skills/us-refinement`, then copies from that central store to every agent path using the same `SKILL.md` + `scripts/` + `tests/` payload as local mode. `docs/`, `openspec/`, `.git/`, and `.gitignore` are intentionally excluded to keep the installed payload minimal.
 
-Agent target paths currently wired into both scripts: `~/.gemini/skills/us-refinement`, `~/.claude/skills/us-refinement`, `~/.config/opencode/skills/us-refinement`. Both scripts re-link idempotently — if a link already points at the correct target, they no-op; if it points elsewhere or is a real directory, they remove and recreate it.
+Agent target paths currently wired into both scripts: `~/.gemini/skills/us-refinement`, `~/.claude/skills/us-refinement`, `~/.config/opencode/skills/us-refinement`, `~/.copilot/skills/us-refinement`, `~/.agents/skills/us-refinement`, plus any `~/.claude-*/skills/us-refinement` multi-account directories. Both scripts reinstall idempotently — an existing target directory is removed and recreated with a fresh copy on every run.
 
 ### `docs/*-skills.md` — per-agent porting notes
 
