@@ -128,13 +128,17 @@ Copy-Item -Path (Join-Path $repoRoot "us-refinement-uninstall.ps1") -Destination
 Copy-Item -Path (Join-Path $repoRoot "us-refinement-uninstall.sh") -Destination $buildDir
 Copy-Item -Path (Join-Path $repoRoot "update.ps1") -Destination $buildDir
 Copy-Item -Path (Join-Path $repoRoot "update.sh") -Destination $buildDir
+Copy-Item -Path (Join-Path $repoRoot "scripts") -Destination $buildDir -Recurse
+Copy-Item -Path (Join-Path $repoRoot "tests") -Destination $buildDir -Recurse
 
 $items = @(
     (Join-Path $buildDir "SKILL.md"),
     (Join-Path $buildDir "us-refinement-uninstall.ps1"),
     (Join-Path $buildDir "us-refinement-uninstall.sh"),
     (Join-Path $buildDir "update.ps1"),
-    (Join-Path $buildDir "update.sh")
+    (Join-Path $buildDir "update.sh"),
+    (Join-Path $buildDir "scripts"),
+    (Join-Path $buildDir "tests")
 )
 Compress-Archive -Path $items -DestinationPath $zipPath -Force
 Write-Host "  Created build/us-refinement.zip" -ForegroundColor Green

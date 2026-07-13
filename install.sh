@@ -45,22 +45,39 @@ if [ -z "$SRC_DIR" ]; then
     SRC_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 fi
 
-# 3. File Copy Helper
+# 3. Payload Copy Helper (SKILL.md + scripts/ + tests/ - docs/ excluded on purpose)
+# Stages the payload in a sibling ".staging" dir and swaps it into place only after every
+# copy succeeds, so a mid-copy failure (caught by `set -e`) leaves the existing installed
+# payload untouched.
 copy_skill_file() {
     local target="$1"
     local source="$2"
-    
+    local staging="${target}.staging"
+
     mkdir -p "$(dirname "$target")"
-    rm -rf "$target"
-    mkdir -p "$target"
-    
+    rm -rf "$staging"
+    mkdir -p "$staging"
+
     if [ -f "$source/SKILL.md" ]; then
         echo "Copying SKILL.md to: $target"
-        cp "$source/SKILL.md" "$target/"
+        cp "$source/SKILL.md" "$staging/"
     else
         echo "Error: SKILL.md not found at $source" >&2
+        rm -rf "$staging"
         exit 1
     fi
+
+    for dir in scripts tests; do
+        if [ -d "$source/$dir" ]; then
+            echo "Copying $dir/ to: $target"
+            cp -r "$source/$dir" "$staging/"
+        else
+            echo "Warning: $dir/ not found at $source - skipping." >&2
+        fi
+    done
+
+    rm -rf "$target"
+    mv "$staging" "$target"
 }
 
 # 4. Installation Logic

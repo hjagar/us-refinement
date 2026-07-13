@@ -67,12 +67,19 @@ try {
     
     # Safely overwrite central files (pisin' individual files to prevent locking on script itself)
     Write-Host "Updating central files..." -ForegroundColor Gray
+    foreach ($dir in @("scripts", "tests")) {
+        # Clear stale central-store dirs first: a plain merge-copy below would leave behind
+        # files removed/renamed in the new release, and those orphans would then be
+        # re-propagated to every agent path.
+        $centralSubdir = Join-Path $CentralDir $dir
+        if (Test-Path $centralSubdir) { Remove-Item -Path $centralSubdir -Force -Recurse }
+    }
     Get-ChildItem -Path $tempExtractDir -Force | ForEach-Object {
         $destPath = Join-Path $CentralDir $_.Name
         Copy-Item -Path $_.FullName -Destination $destPath -Force -Recurse
     }
     
-    # 5. Propagate SKILL.md to all agents
+    # 5. Propagate SKILL.md + scripts/ + tests/ to all agents
     Write-Host "Updating agents..." -ForegroundColor Gray
     $AgentPaths = [System.Collections.Generic.List[string]]::new()
     $AgentPaths.Add((Join-Path $HomeDir ".gemini\skills\us-refinement"))
@@ -91,9 +98,21 @@ try {
     $newSkill = Join-Path $CentralDir "SKILL.md"
     foreach ($agent in $AgentPaths) {
         if (Test-Path $agent) {
+            # Stage into a sibling dir and swap it into place only after every copy
+            # succeeds, so a mid-copy failure leaves the previously-installed agent
+            # payload untouched instead of wiped-and-broken.
+            $staging = "$agent.staging"
+            if (Test-Path $staging) { Remove-Item -Path $staging -Force -Recurse | Out-Null }
+            New-Item -ItemType Directory -Path $staging -Force | Out-Null
+            Copy-Item -Path $newSkill -Destination $staging -Force
+            foreach ($dir in @("scripts", "tests")) {
+                $srcDir = Join-Path $CentralDir $dir
+                if (Test-Path $srcDir) {
+                    Copy-Item -Path $srcDir -Destination $staging -Recurse -Force
+                }
+            }
             Remove-Item -Path $agent -Force -Recurse | Out-Null
-            New-Item -ItemType Directory -Path $agent -Force | Out-Null
-            Copy-Item -Path $newSkill -Destination $agent -Force
+            Move-Item -Path $staging -Destination $agent
             Write-Host "Updated agent skill path: $agent" -ForegroundColor Green
         }
     }

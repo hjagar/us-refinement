@@ -59,9 +59,15 @@ if ! unzip -o "$TEMP_ZIP" -d "$TEMP_EXTRACT_DIR" &>/dev/null; then
 fi
 
 echo "Updating central files..."
+# Clear stale central-store dirs first: a plain merge-copy below would leave behind
+# files removed/renamed in the new release, and those orphans would then be
+# re-propagated to every agent path.
+for dir in scripts tests; do
+    rm -rf "${CENTRAL_DIR:?}/$dir"
+done
 cp -R "$TEMP_EXTRACT_DIR"/. "$CENTRAL_DIR/"
 
-# 5. Propagate SKILL.md to all agents
+# 5. Propagate SKILL.md + scripts/ + tests/ to all agents
 echo "Updating agents..."
 AGENT_PATHS=(
     "$HOME/.gemini/skills/us-refinement"
@@ -80,9 +86,20 @@ done
 
 for agent in "${AGENT_PATHS[@]}"; do
     if [ -d "$agent" ] || [ -f "$agent" ]; then
+        # Stage into a sibling dir and swap it into place only after every copy
+        # succeeds (caught by `set -e`), so a mid-copy failure leaves the
+        # previously-installed agent payload untouched instead of wiped-and-broken.
+        staging="${agent}.staging"
+        rm -rf "$staging"
+        mkdir -p "$staging"
+        cp "$CENTRAL_DIR/SKILL.md" "$staging/"
+        for dir in scripts tests; do
+            if [ -d "$CENTRAL_DIR/$dir" ]; then
+                cp -r "$CENTRAL_DIR/$dir" "$staging/"
+            fi
+        done
         rm -rf "$agent"
-        mkdir -p "$agent"
-        cp "$CENTRAL_DIR/SKILL.md" "$agent/"
+        mv "$staging" "$agent"
         echo "Updated agent skill path: $agent"
     fi
 done

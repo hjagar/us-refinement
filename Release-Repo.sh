@@ -109,9 +109,11 @@ cp us-refinement-uninstall.ps1 "$BUILD_DIR/"
 cp us-refinement-uninstall.sh "$BUILD_DIR/"
 cp update.ps1 "$BUILD_DIR/"
 cp update.sh "$BUILD_DIR/"
+cp -r scripts "$BUILD_DIR/"
+cp -r tests "$BUILD_DIR/"
 
 cd "$BUILD_DIR"
-zip -r "$ZIP_PATH" SKILL.md us-refinement-uninstall.ps1 us-refinement-uninstall.sh update.ps1 update.sh
+zip -r "$ZIP_PATH" SKILL.md us-refinement-uninstall.ps1 us-refinement-uninstall.sh update.ps1 update.sh scripts tests
 cd "$REPO_ROOT"
 echo "  Created build/us-refinement.zip"
 
