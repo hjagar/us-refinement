@@ -58,80 +58,51 @@ if ! unzip -o "$TEMP_ZIP" -d "$TEMP_EXTRACT_DIR" &>/dev/null; then
     exit 1
 fi
 
+# Validate the extracted archive is complete BEFORE clearing any existing central-store
+# content below - update.sh now depends on lib/ to even finish (it sources
+# lib/skill-payload.sh from the central store further down), so a truncated/incomplete
+# archive must abort here instead of wiping a working install with no way back.
+for required in SKILL.md scripts tests lib; do
+    if [ ! -e "$TEMP_EXTRACT_DIR/$required" ]; then
+        echo "Error: downloaded release archive is missing '$required' - aborting before touching the existing installation at $CENTRAL_DIR." >&2
+        exit 1
+    fi
+done
+
 echo "Updating central files..."
 # Clear stale central-store dirs first: a plain merge-copy below would leave behind
 # files removed/renamed in the new release, and those orphans would then be
 # re-propagated to every agent path.
-for dir in scripts tests; do
+for dir in scripts tests lib; do
     rm -rf "${CENTRAL_DIR:?}/$dir"
 done
 cp -R "$TEMP_EXTRACT_DIR"/. "$CENTRAL_DIR/"
 
+# build_agent_paths, copy_skill_file, and new_kiro_steering_file live in
+# lib/skill-payload.sh (shared with install.sh). It was just refreshed into
+# $CENTRAL_DIR above alongside scripts/ and tests/, so source the refreshed copy.
+# shellcheck source=lib/skill-payload.sh
+source "$CENTRAL_DIR/lib/skill-payload.sh"
+
 # 5. Propagate SKILL.md + scripts/ + tests/ to all agents
 echo "Updating agents..."
-AGENT_PATHS=(
-    "$HOME/.gemini/skills/us-refinement"
-    "$HOME/.config/opencode/skills/us-refinement"
-    "$HOME/.copilot/skills/us-refinement"
-    "$HOME/.agents/skills/us-refinement"
-    "$HOME/.claude/skills/us-refinement"
-    "$HOME/.cursor/skills/us-refinement"
-)
-
-# Multi-account support
-for d in "$HOME"/.claude-*; do
-    if [ -d "$d" ]; then
-        AGENT_PATHS+=("$d/skills/us-refinement")
-    fi
-done
+build_agent_paths
 
 for agent in "${AGENT_PATHS[@]}"; do
     if [ -d "$agent" ] || [ -f "$agent" ]; then
-        # Stage into a sibling dir and swap it into place only after every copy
-        # succeeds (caught by `set -e`), so a mid-copy failure leaves the
-        # previously-installed agent payload untouched instead of wiped-and-broken.
-        staging="${agent}.staging"
-        rm -rf "$staging"
-        mkdir -p "$staging"
-        cp "$CENTRAL_DIR/SKILL.md" "$staging/"
-        for dir in scripts tests; do
-            if [ -d "$CENTRAL_DIR/$dir" ]; then
-                cp -r "$CENTRAL_DIR/$dir" "$staging/"
-            fi
-        done
-        rm -rf "$agent"
-        mv "$staging" "$agent"
+        copy_skill_file "$agent" "$CENTRAL_DIR"
         echo "Updated agent skill path: $agent"
     fi
 done
 
 # Kiro is a special case: a single generated steering file at
 # ~/.kiro/steering/us-refinement.md (SKILL.md's frontmatter with `inclusion: always`
-# injected), not a folder+SKILL.md copy - no scripts/ or tests/ payload.
+# injected), not a folder+SKILL.md copy - no scripts/ or tests/ payload. Only
+# regenerate it if it already exists - update.sh never opts a machine into a new agent,
+# only refreshes agents already installed.
 KIRO_TARGET="$HOME/.kiro/steering/us-refinement.md"
 if [ -f "$KIRO_TARGET" ]; then
-    # Checked via a pipe (never captured into a shell variable) so a CRLF-terminated
-    # source line's trailing \r survives intact for the comparison below.
-    if ! sed -n '1p' "$CENTRAL_DIR/SKILL.md" | grep -Eq $'^---\r?$'; then
-        echo "Error: SKILL.md at $CENTRAL_DIR does not start with a '---' YAML frontmatter delimiter - cannot update Kiro steering file." >&2
-        exit 1
-    fi
-    kiro_staging="${KIRO_TARGET}.staging"
-    # Match the injected line's terminator to the source file's own EOL style (CRLF vs LF),
-    # detected from line 1, so the output doesn't end up with mixed line endings.
-    injected_line="inclusion: always"$'\n'
-    if sed -n '1p' "$CENTRAL_DIR/SKILL.md" | grep -q $'\r$'; then
-        injected_line="inclusion: always"$'\r\n'
-    fi
-    # Every other line is streamed straight through via sed (never captured into a shell
-    # variable), so it reaches the output byte-for-byte regardless of its EOL style.
-    {
-        sed -n '1p' "$CENTRAL_DIR/SKILL.md"
-        printf '%s' "$injected_line"
-        sed -n '2,$p' "$CENTRAL_DIR/SKILL.md"
-    } > "$kiro_staging"
-    rm -f "$KIRO_TARGET"
-    mv "$kiro_staging" "$KIRO_TARGET"
+    new_kiro_steering_file "$CENTRAL_DIR"
     echo "Updated agent skill path: $KIRO_TARGET"
 fi
 

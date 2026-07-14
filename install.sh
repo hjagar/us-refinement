@@ -26,112 +26,23 @@ fi
 
 # 2. Path Setup
 CENTRAL_DIR="$HOME/.hjagar/skills/us-refinement"
-AGENT_PATHS=(
-    "$HOME/.gemini/skills/us-refinement"
-    "$HOME/.claude/skills/us-refinement"
-    "$HOME/.config/opencode/skills/us-refinement"
-    "$HOME/.copilot/skills/us-refinement"
-    "$HOME/.agents/skills/us-refinement"
-    "$HOME/.cursor/skills/us-refinement"
-)
-
-# Dynamic multi-account .claude-* detection
-for d in "$HOME"/.claude-*; do
-    if [ -d "$d" ]; then
-        AGENT_PATHS+=("$d/skills/us-refinement")
-    fi
-done
 
 if [ -z "$SRC_DIR" ]; then
     SRC_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 fi
 
-# 3. Payload Copy Helper (SKILL.md + scripts/ + tests/ - docs/ excluded on purpose)
-# Stages the payload in a sibling ".staging" dir and swaps it into place only after every
-# copy succeeds, so a mid-copy failure (caught by `set -e`) leaves the existing installed
-# payload untouched.
-copy_skill_file() {
-    local target="$1"
-    local source="$2"
-    local staging="${target}.staging"
-
-    mkdir -p "$(dirname "$target")"
-    rm -rf "$staging"
-    mkdir -p "$staging"
-
-    if [ -f "$source/SKILL.md" ]; then
-        echo "Copying SKILL.md to: $target"
-        cp "$source/SKILL.md" "$staging/"
-    else
-        echo "Error: SKILL.md not found at $source" >&2
-        rm -rf "$staging"
-        exit 1
-    fi
-
-    for dir in scripts tests; do
-        if [ -d "$source/$dir" ]; then
-            echo "Copying $dir/ to: $target"
-            cp -r "$source/$dir" "$staging/"
-        else
-            echo "Warning: $dir/ not found at $source - skipping." >&2
-        fi
-    done
-
-    rm -rf "$target"
-    mv "$staging" "$target"
-}
-
-# 3b. Kiro Steering File Helper
-# Kiro does not use the folder+SKILL.md format other agents use: it reads a single flat
-# steering file at ~/.kiro/steering/us-refinement.md with `inclusion: always` injected as
-# the first key inside SKILL.md's YAML frontmatter. No scripts/ or tests/ payload - steering
-# files are plain markdown only. Stages then swaps into place for the same atomicity
-# guarantee as copy_skill_file.
-new_kiro_steering_file() {
-    local source="$1"
-    local steering_dir="$HOME/.kiro/steering"
-    local target="$steering_dir/us-refinement.md"
-    local staging="${target}.staging"
-    local src_file="$source/SKILL.md"
-
-    if [ ! -f "$src_file" ]; then
-        echo "Error: SKILL.md not found at $source" >&2
-        exit 1
-    fi
-
-    # Checked via a pipe (never captured into a shell variable) so a CRLF-terminated
-    # source line's trailing \r survives intact for the comparison below.
-    if ! sed -n '1p' "$src_file" | grep -Eq $'^---\r?$'; then
-        echo "Error: SKILL.md at $source does not start with a '---' YAML frontmatter delimiter - cannot generate Kiro steering file." >&2
-        exit 1
-    fi
-
-    mkdir -p "$steering_dir"
-    echo "Generating Kiro steering file: $target"
-
-    # Match the injected line's terminator to the source file's own EOL style (CRLF vs LF),
-    # detected from line 1, so the output doesn't end up with mixed line endings.
-    local injected_line="inclusion: always"$'\n'
-    if sed -n '1p' "$src_file" | grep -q $'\r$'; then
-        injected_line="inclusion: always"$'\r\n'
-    fi
-
-    # Insert `inclusion: always` as a new line right after the opening `---` delimiter.
-    # Every other line is streamed straight through via sed (never captured into a shell
-    # variable), so it reaches the output byte-for-byte regardless of its EOL style.
-    {
-        sed -n '1p' "$src_file"
-        printf '%s' "$injected_line"
-        sed -n '2,$p' "$src_file"
-    } > "$staging"
-
-    rm -f "$target"
-    mv "$staging" "$target"
-}
-
-# 4. Installation Logic
+# 3. Installation Logic
+# build_agent_paths, copy_skill_file, and new_kiro_steering_file live in
+# lib/skill-payload.sh (shared with update.sh). Local mode sources it straight from
+# $SRC_DIR - a real checkout, always present on disk. Global mode can only source it from
+# $CENTRAL_DIR AFTER the release ZIP has been downloaded and extracted there below, since
+# install.sh ships as a single self-contained file for the `curl <url> | bash`
+# distribution path and has no sibling files available before that point.
 if [ "$LOCAL" = true ]; then
     echo "Installing us-refinement in LOCAL Mode..."
+    # shellcheck source=lib/skill-payload.sh
+    source "$SRC_DIR/lib/skill-payload.sh"
+    build_agent_paths
     for agent in "${AGENT_PATHS[@]}"; do
         copy_skill_file "$agent" "$SRC_DIR"
     done
@@ -187,7 +98,12 @@ else
         exit 1
     fi
     rm -f "$TEMP_ZIP"
-    
+
+    # Only now does $CENTRAL_DIR physically contain lib/skill-payload.sh - source it from
+    # there, never before the extraction above.
+    # shellcheck source=lib/skill-payload.sh
+    source "$CENTRAL_DIR/lib/skill-payload.sh"
+    build_agent_paths
     for agent in "${AGENT_PATHS[@]}"; do
         copy_skill_file "$agent" "$CENTRAL_DIR"
     done
