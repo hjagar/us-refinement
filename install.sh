@@ -32,6 +32,7 @@ AGENT_PATHS=(
     "$HOME/.config/opencode/skills/us-refinement"
     "$HOME/.copilot/skills/us-refinement"
     "$HOME/.agents/skills/us-refinement"
+    "$HOME/.cursor/skills/us-refinement"
 )
 
 # Dynamic multi-account .claude-* detection

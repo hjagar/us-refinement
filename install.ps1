@@ -25,6 +25,7 @@ $AgentPaths.Add((Join-Path $HomeDir ".claude\skills\us-refinement"))
 $AgentPaths.Add((Join-Path $HomeDir ".config\opencode\skills\us-refinement"))
 $AgentPaths.Add((Join-Path $HomeDir ".copilot\skills\us-refinement"))
 $AgentPaths.Add((Join-Path $HomeDir ".agents\skills\us-refinement"))
+$AgentPaths.Add((Join-Path $HomeDir ".cursor\skills\us-refinement"))
 
 if (Test-Path $HomeDir) {
     Get-ChildItem -Path $HomeDir -Filter ".claude-*" -Directory -ErrorAction SilentlyContinue | ForEach-Object {
