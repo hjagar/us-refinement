@@ -14,7 +14,7 @@ if [ ! -f "$LOCAL_SKILL" ]; then
     exit 1
 fi
 
-frontmatter=$(awk '/^---[[:space:]]*\r?$/{c++; if (c==2) exit; next} c==1' "$LOCAL_SKILL")
+frontmatter=$(awk '/^---[[:space:]]*\r?$/{c++; if (c==2) {print buf; exit}; next} c==1 {buf = buf $0 ORS}' "$LOCAL_SKILL")
 local_version=$(printf '%s\n' "$frontmatter" | grep -oE '^[[:space:]]*version:[[:space:]]*v[0-9.]+' | sed -E 's/^[[:space:]]*version:[[:space:]]*//' | head -n1 || true)
 if [ -z "$local_version" ]; then
     local_version=$(grep -oE '<!-- version: v[0-9.]* -->' "$LOCAL_SKILL" | sed -E 's/<!-- version: (v[0-9.]*) -->/\1/' || true)
