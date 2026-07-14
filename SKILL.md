@@ -58,8 +58,12 @@ Check the story against these six axes and silently note gaps (don't show this r
 - **Negotiable**: is it over-specified (dictates implementation) or under-specified (says nothing)?
 - **Valuable**: is the value to the user/business explicit?
 - **Estimable**: is there enough info to estimate effort?
-- **Small**: is it scoped to a reasonable cycle, or should it be split?
+- **Small**: is it scoped to a reasonable cycle, or should it be split? Unlike the other five axes, don't fold this one silently into Step 2 — see the scope pre-check below.
 - **Testable**: can "done" be objectively verified?
+
+### Scope pre-check: stories that bundle multiple features
+
+If the story clearly describes two or more independent, separately shippable features or functionalities (a "Small" violation), warn the user before moving to Step 2: point out which parts look divisible, and offer to split the story into separate ones. If the user prefers to keep it as a single story, respect that and continue refining it whole — don't force a split. If the story describes a single cohesive functionality, skip this warning entirely and proceed straight to Step 1.5/Step 2.
 
 ## Step 1.5: Technical Feasibility and Component Scan (OPT-IN ONLY)
 
