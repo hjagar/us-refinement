@@ -124,10 +124,6 @@ Output format:
 - [List of stories, services, or prior data required, or "None identified"]
 - [WARNING: Any missing tool warnings discovered in Step 1.5, e.g., "Tool 'Docker' is mentioned in the story but is missing from the system PATH."]
 
-### Technical scope
-- Backend: [yes/no — which parts]
-- Frontend: [yes/no — which parts]
-
 ### Assumptions
 - [ ] [First unconfirmed assumption / skipped question mapping]
 - [ ] [Second unconfirmed assumption / skipped question mapping]
@@ -158,6 +154,7 @@ scenarios:
 - **Omit section entirely**: If there are no unresolved points (no questions were asked in Step 2, or the user answered all of them), the `### Assumptions` section header and its items must be omitted entirely from the output.
 - **Unchecked checkboxes**: All assumptions must be rendered as unchecked checkboxes (`- [ ]`). Never check them in the generated output.
 - **Re-refinements**: If you are refining a story that already has an `### Assumptions` section in its current body/file, compare the user's new inputs against the existing checkboxes. Remove any checkbox items that have been resolved, and keep only the ones that remain unresolved. If all items are resolved, remove the section completely.
+- **No "### Technical scope" section**: the output never includes a "### Technical scope" section — that decision belongs to `/sdd-new`'s design phase, not refinement. `metadata.scope.backend`/`metadata.scope.frontend` in the hidden AI-DATA block still capture it. If you are re-refining a story whose existing body/comment contains a "### Technical scope" section from a previous refinement, omit it from the new output even though it was present before.
 
 ### Contextual Hint for Deep Mode (Standard Mode only)
 - If running in Standard Mode (without `--deep`) and the raw user story mentions external tools (e.g., Docker, Python, gh, unzip, shellcheck, winget) or codebase files/components (e.g., installer, uninstaller, validator, script), append a non-intrusive GitHub-style tip alert at the very end of the markdown file (after the HTML comments block or as part of the output text):
