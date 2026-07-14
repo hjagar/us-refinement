@@ -37,7 +37,7 @@ Two possible sources — detect which one applies:
 3. Use the issue's title + body as the raw user story input for Step 1.
 4. If `gh` is not authenticated or the command fails, tell the user clearly and ask them to paste the story manually instead — do not guess the content.
 
-## Step 0.5: Environment and Storage Setup (MANDATORY)
+## Step 0.5: Environment and Storage Setup (flexible gate, NOT blocking)
 
 Before starting the refinement analysis, check the available tools and configure the storage mode:
 1. **Detect Engram**: Check if the `engram` MCP server is active in the current session.
@@ -46,7 +46,9 @@ Before starting the refinement analysis, check the available tools and configure
      - `openspec` (local files only under the `openspec/changes/` directory)
      - `hybrid` (both: save to memory and local files in real time)
      - `hybrid-delayed` (use local files for visualization during the session, saving everything to Engram at the end of the session).
-   - **If inactive**: Check if the workspace contains an active SDD structure (presence of `.agents/` or `openspec/` folders). If yes, default to `openspec` local file storage. Otherwise, default to standard console log output (clipboard fallback).
+
+     **This gate is flexible.** After presenting the options, explicitly offer: "If you'd rather not choose right now, I can continue with `engram` as the default." If the user says "go ahead anyway", "skip it", "doesn't matter" or similar instead of picking one, proceed using `engram` as the storage mode, without blocking the flow.
+   - **If inactive**: Check if the workspace contains an active SDD structure (presence of `.agents/` or `openspec/` folders). If yes, default to `openspec` local file storage. Otherwise, default to standard console log output (clipboard fallback). No question is asked in this case, so there is nothing to bypass.
 
 ## Step 1: Analyze against INVEST criteria
 
