@@ -75,6 +75,7 @@ AGENT_PATHS=(
     "$HOME/.copilot/skills/us-refinement"
     "$HOME/.agents/skills/us-refinement"
     "$HOME/.claude/skills/us-refinement"
+    "$HOME/.cursor/skills/us-refinement"
 )
 
 # Multi-account support
