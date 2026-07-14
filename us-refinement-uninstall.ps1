@@ -30,6 +30,14 @@ foreach ($agent in $AgentPaths) {
     }
 }
 
+# Kiro is a special case: a single generated steering file, not a folder - remove only that
+# file, never the parent ~/.kiro/steering/ directory (other unrelated Kiro skills may live there).
+$kiroSteeringFile = Join-Path $HomeDir ".kiro\steering\us-refinement.md"
+if (Test-Path $kiroSteeringFile) {
+    Remove-Item $kiroSteeringFile -Force
+    Write-Host "Removed: $kiroSteeringFile" -ForegroundColor Green
+}
+
 # Determine script execution context
 $executionDir = $PSScriptRoot
 $runningFromCentral = $false

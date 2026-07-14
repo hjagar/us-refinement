@@ -81,12 +81,61 @@ copy_skill_file() {
     mv "$staging" "$target"
 }
 
+# 3b. Kiro Steering File Helper
+# Kiro does not use the folder+SKILL.md format other agents use: it reads a single flat
+# steering file at ~/.kiro/steering/us-refinement.md with `inclusion: always` injected as
+# the first key inside SKILL.md's YAML frontmatter. No scripts/ or tests/ payload - steering
+# files are plain markdown only. Stages then swaps into place for the same atomicity
+# guarantee as copy_skill_file.
+new_kiro_steering_file() {
+    local source="$1"
+    local steering_dir="$HOME/.kiro/steering"
+    local target="$steering_dir/us-refinement.md"
+    local staging="${target}.staging"
+    local src_file="$source/SKILL.md"
+
+    if [ ! -f "$src_file" ]; then
+        echo "Error: SKILL.md not found at $source" >&2
+        exit 1
+    fi
+
+    # Checked via a pipe (never captured into a shell variable) so a CRLF-terminated
+    # source line's trailing \r survives intact for the comparison below.
+    if ! sed -n '1p' "$src_file" | grep -Eq $'^---\r?$'; then
+        echo "Error: SKILL.md at $source does not start with a '---' YAML frontmatter delimiter - cannot generate Kiro steering file." >&2
+        exit 1
+    fi
+
+    mkdir -p "$steering_dir"
+    echo "Generating Kiro steering file: $target"
+
+    # Match the injected line's terminator to the source file's own EOL style (CRLF vs LF),
+    # detected from line 1, so the output doesn't end up with mixed line endings.
+    local injected_line="inclusion: always"$'\n'
+    if sed -n '1p' "$src_file" | grep -q $'\r$'; then
+        injected_line="inclusion: always"$'\r\n'
+    fi
+
+    # Insert `inclusion: always` as a new line right after the opening `---` delimiter.
+    # Every other line is streamed straight through via sed (never captured into a shell
+    # variable), so it reaches the output byte-for-byte regardless of its EOL style.
+    {
+        sed -n '1p' "$src_file"
+        printf '%s' "$injected_line"
+        sed -n '2,$p' "$src_file"
+    } > "$staging"
+
+    rm -f "$target"
+    mv "$staging" "$target"
+}
+
 # 4. Installation Logic
 if [ "$LOCAL" = true ]; then
     echo "Installing us-refinement in LOCAL Mode..."
     for agent in "${AGENT_PATHS[@]}"; do
         copy_skill_file "$agent" "$SRC_DIR"
     done
+    new_kiro_steering_file "$SRC_DIR"
 else
     echo "Installing us-refinement in GLOBAL Mode..."
     rm -rf "$CENTRAL_DIR"
@@ -142,6 +191,7 @@ else
     for agent in "${AGENT_PATHS[@]}"; do
         copy_skill_file "$agent" "$CENTRAL_DIR"
     done
+    new_kiro_steering_file "$CENTRAL_DIR"
 fi
 
 echo "Installation completed successfully!"

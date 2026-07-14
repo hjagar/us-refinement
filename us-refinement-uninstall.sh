@@ -29,6 +29,14 @@ for agent in "${AGENT_PATHS[@]}"; do
     fi
 done
 
+# Kiro is a special case: a single generated steering file, not a folder - remove only that
+# file, never the parent ~/.kiro/steering/ directory (other unrelated Kiro skills may live there).
+KIRO_STEERING_FILE="$HOME/.kiro/steering/us-refinement.md"
+if [ -f "$KIRO_STEERING_FILE" ]; then
+    rm -f "$KIRO_STEERING_FILE"
+    echo "Removed: $KIRO_STEERING_FILE"
+fi
+
 # Determine script execution context
 SELF="${BASH_SOURCE[0]}"
 EXEC_DIR=$(cd "$(dirname "$SELF")" && pwd)

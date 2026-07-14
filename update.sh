@@ -105,4 +105,34 @@ for agent in "${AGENT_PATHS[@]}"; do
     fi
 done
 
+# Kiro is a special case: a single generated steering file at
+# ~/.kiro/steering/us-refinement.md (SKILL.md's frontmatter with `inclusion: always`
+# injected), not a folder+SKILL.md copy - no scripts/ or tests/ payload.
+KIRO_TARGET="$HOME/.kiro/steering/us-refinement.md"
+if [ -f "$KIRO_TARGET" ]; then
+    # Checked via a pipe (never captured into a shell variable) so a CRLF-terminated
+    # source line's trailing \r survives intact for the comparison below.
+    if ! sed -n '1p' "$CENTRAL_DIR/SKILL.md" | grep -Eq $'^---\r?$'; then
+        echo "Error: SKILL.md at $CENTRAL_DIR does not start with a '---' YAML frontmatter delimiter - cannot update Kiro steering file." >&2
+        exit 1
+    fi
+    kiro_staging="${KIRO_TARGET}.staging"
+    # Match the injected line's terminator to the source file's own EOL style (CRLF vs LF),
+    # detected from line 1, so the output doesn't end up with mixed line endings.
+    injected_line="inclusion: always"$'\n'
+    if sed -n '1p' "$CENTRAL_DIR/SKILL.md" | grep -q $'\r$'; then
+        injected_line="inclusion: always"$'\r\n'
+    fi
+    # Every other line is streamed straight through via sed (never captured into a shell
+    # variable), so it reaches the output byte-for-byte regardless of its EOL style.
+    {
+        sed -n '1p' "$CENTRAL_DIR/SKILL.md"
+        printf '%s' "$injected_line"
+        sed -n '2,$p' "$CENTRAL_DIR/SKILL.md"
+    } > "$kiro_staging"
+    rm -f "$KIRO_TARGET"
+    mv "$kiro_staging" "$KIRO_TARGET"
+    echo "Updated agent skill path: $KIRO_TARGET"
+fi
+
 echo "Update completed successfully to version $latest_version!"
