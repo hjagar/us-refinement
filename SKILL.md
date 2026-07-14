@@ -1,6 +1,6 @@
 ---
 name: us-refinement
-description: Refines user stories. Trigger on manual commands /refine, /refinar. Auto-trigger on raw user stories (As a/Como, I want/Quiero/Quiero poder, So that/Para), GitHub issue references for refinement (e.g., #123, "refinar issue 45"), or agile terms (criterios de aceptación, acceptance criteria, INVEST, ready for dev, definición de terminado).
+description: Refines a raw user story into an INVEST-checked spec with Given/When/Then acceptance criteria, before technical design or /sdd-new. Trigger on /refine, /refinar, pasted As a/Como... stories, GitHub issue refinement requests, or agile terms like acceptance criteria and INVEST.
 ---
 <!-- version: v1.2.1 -->
 
