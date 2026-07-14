@@ -77,13 +77,13 @@ When running in Deep Mode (`--deep`), inspect the system PATH and repository wor
 
 ## Step 2: Ask what's missing (flexible gate, NOT blocking)
 
-Group clarification questions into these fixed categories, but only include categories where info is actually missing — don't ask about what's already clear:
+Group clarification questions into these fixed categories, but only include categories where info is actually missing — don't ask about what's already clear. The list below is a priority order, not just a grouping: when more than one category has gaps, present and resolve them in this order (don't jump ahead to a lower-priority category before the higher-priority ones are answered or explicitly skipped), even if the user answers incrementally, one category at a time.
 
 - **Acceptance criteria** — if there's no Given/When/Then, ask for it.
-- **Edge cases / unstated business rules** — unhappy paths, validations, permissions.
 - **Dependencies** — other stories, external services, data that must exist beforehand.
 - **Technical scope** — backend, frontend, both? New UI or pure logic?
-- **Technical Feasibility / Ambiguity** — (Only if running in Deep Mode `--deep` and Step 1.5 flagged multiple file matches or zero matches): ask the user to clarify which specific file/component they target. If running in Standard Mode, do not include this category.
+- **Edge cases / unstated business rules** — unhappy paths, validations, permissions.
+- **Technical Feasibility / Ambiguity** — (Only if running in Deep Mode `--deep` and Step 1.5 flagged multiple file matches or zero matches): ask the user to clarify which specific file/component they target. Always presented last. If running in Standard Mode, do not include this category.
 
 Present the questions clearly and compactly (not as an endless questionnaire). After presenting them, explicitly offer:
 
