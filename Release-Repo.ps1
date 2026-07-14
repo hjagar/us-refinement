@@ -42,8 +42,8 @@ if (-not (Get-Command gh -ErrorAction SilentlyContinue)) {
     exit 1
 }
 
-# Shellcheck loop
-$shFiles = Get-ChildItem -Path $repoRoot -Filter *.sh -File
+# Shellcheck loop (repo-root scripts + lib/, which now ships shared shell logic)
+$shFiles = @(Get-ChildItem -Path $repoRoot -Filter *.sh -File) + @(Get-ChildItem -Path (Join-Path $repoRoot "lib") -Filter *.sh -File -ErrorAction SilentlyContinue)
 foreach ($file in $shFiles) {
     Write-Host "  checking $($file.Name)..." -ForegroundColor Gray
     shellcheck $file.FullName
@@ -130,6 +130,7 @@ Copy-Item -Path (Join-Path $repoRoot "update.ps1") -Destination $buildDir
 Copy-Item -Path (Join-Path $repoRoot "update.sh") -Destination $buildDir
 Copy-Item -Path (Join-Path $repoRoot "scripts") -Destination $buildDir -Recurse
 Copy-Item -Path (Join-Path $repoRoot "tests") -Destination $buildDir -Recurse
+Copy-Item -Path (Join-Path $repoRoot "lib") -Destination $buildDir -Recurse
 
 $items = @(
     (Join-Path $buildDir "SKILL.md"),
@@ -138,7 +139,8 @@ $items = @(
     (Join-Path $buildDir "update.ps1"),
     (Join-Path $buildDir "update.sh"),
     (Join-Path $buildDir "scripts"),
-    (Join-Path $buildDir "tests")
+    (Join-Path $buildDir "tests"),
+    (Join-Path $buildDir "lib")
 )
 Compress-Archive -Path $items -DestinationPath $zipPath -Force
 Write-Host "  Created build/us-refinement.zip" -ForegroundColor Green

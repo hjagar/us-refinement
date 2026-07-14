@@ -64,10 +64,22 @@ try {
     
     Write-Host "Extracting archive..." -ForegroundColor Gray
     Expand-Archive -Path $tempZip -DestinationPath $tempExtractDir -Force
-    
+
+    # Validate the extracted archive is complete BEFORE clearing any existing central-store
+    # content below - update.ps1 now depends on lib/ to even finish (it dot-sources
+    # lib/skill-payload.ps1 from the central store further down), so a truncated/incomplete
+    # archive must abort here instead of wiping a working install with no way back.
+    foreach ($required in @("SKILL.md", "scripts", "tests", "lib")) {
+        $requiredPath = Join-Path $tempExtractDir $required
+        if (-not (Test-Path $requiredPath)) {
+            Write-Error "Error: downloaded release archive is missing '$required' - aborting before touching the existing installation at $CentralDir."
+            exit 1
+        }
+    }
+
     # Safely overwrite central files (pisin' individual files to prevent locking on script itself)
     Write-Host "Updating central files..." -ForegroundColor Gray
-    foreach ($dir in @("scripts", "tests")) {
+    foreach ($dir in @("scripts", "tests", "lib")) {
         # Clear stale central-store dirs first: a plain merge-copy below would leave behind
         # files removed/renamed in the new release, and those orphans would then be
         # re-propagated to every agent path.
@@ -78,66 +90,31 @@ try {
         $destPath = Join-Path $CentralDir $_.Name
         Copy-Item -Path $_.FullName -Destination $destPath -Force -Recurse
     }
-    
+
+    # Copy-SkillFile, New-KiroSteeringFile, and Get-AgentPaths live in
+    # lib/skill-payload.ps1 (shared with install.ps1). It was just refreshed into
+    # $CentralDir above alongside scripts/ and tests/, so dot-source the refreshed copy.
+    . (Join-Path $CentralDir "lib\skill-payload.ps1")
+
     # 5. Propagate SKILL.md + scripts/ + tests/ to all agents
     Write-Host "Updating agents..." -ForegroundColor Gray
-    $AgentPaths = [System.Collections.Generic.List[string]]::new()
-    $AgentPaths.Add((Join-Path $HomeDir ".gemini\skills\us-refinement"))
-    $AgentPaths.Add((Join-Path $HomeDir ".config\opencode\skills\us-refinement"))
-    $AgentPaths.Add((Join-Path $HomeDir ".copilot\skills\us-refinement"))
-    $AgentPaths.Add((Join-Path $HomeDir ".agents\skills\us-refinement"))
-    $AgentPaths.Add((Join-Path $HomeDir ".claude\skills\us-refinement"))
-    $AgentPaths.Add((Join-Path $HomeDir ".cursor\skills\us-refinement"))
+    $AgentPaths = Get-AgentPaths
 
-    # Multi-account support
-    if (Test-Path $HomeDir) {
-        Get-ChildItem -Path $HomeDir -Filter ".claude-*" -Directory -ErrorAction SilentlyContinue | ForEach-Object {
-            $AgentPaths.Add((Join-Path $_.FullName "skills\us-refinement"))
-        }
-    }
-    
-    $newSkill = Join-Path $CentralDir "SKILL.md"
     foreach ($agent in $AgentPaths) {
         if (Test-Path $agent) {
-            # Stage into a sibling dir and swap it into place only after every copy
-            # succeeds, so a mid-copy failure leaves the previously-installed agent
-            # payload untouched instead of wiped-and-broken.
-            $staging = "$agent.staging"
-            if (Test-Path $staging) { Remove-Item -Path $staging -Force -Recurse | Out-Null }
-            New-Item -ItemType Directory -Path $staging -Force | Out-Null
-            Copy-Item -Path $newSkill -Destination $staging -Force
-            foreach ($dir in @("scripts", "tests")) {
-                $srcDir = Join-Path $CentralDir $dir
-                if (Test-Path $srcDir) {
-                    Copy-Item -Path $srcDir -Destination $staging -Recurse -Force
-                }
-            }
-            Remove-Item -Path $agent -Force -Recurse | Out-Null
-            Move-Item -Path $staging -Destination $agent
+            Copy-SkillFile $agent $CentralDir
             Write-Host "Updated agent skill path: $agent" -ForegroundColor Green
         }
     }
 
     # Kiro is a special case: a single generated steering file at
     # ~/.kiro/steering/us-refinement.md (SKILL.md's frontmatter with `inclusion: always`
-    # injected), not a folder+SKILL.md copy - no scripts/ or tests/ payload.
-    $kiroSteeringDir = Join-Path $HomeDir ".kiro\steering"
-    $kiroTarget = Join-Path $kiroSteeringDir "us-refinement.md"
+    # injected), not a folder+SKILL.md copy - no scripts/ or tests/ payload. Only
+    # regenerate it if it already exists - update.ps1 never opts a machine into a new
+    # agent, only refreshes agents already installed.
+    $kiroTarget = Join-Path $HomeDir ".kiro\steering\us-refinement.md"
     if (Test-Path $kiroTarget) {
-        $utf8NoBom = [System.Text.UTF8Encoding]::new($false)
-        $rawContent = [System.IO.File]::ReadAllText($newSkill, $utf8NoBom)
-        $frontmatterStart = [regex]::Match($rawContent, "^---(\r?\n)")
-        if (-not $frontmatterStart.Success) {
-            Write-Error "Error: SKILL.md at $CentralDir does not start with a '---' YAML frontmatter delimiter - cannot update Kiro steering file."
-            exit 1
-        }
-        $eol = $frontmatterStart.Groups[1].Value
-        $insertPos = $frontmatterStart.Length
-        $transformed = $rawContent.Substring(0, $insertPos) + "inclusion: always" + $eol + $rawContent.Substring($insertPos)
-        $kiroStaging = "$kiroTarget.staging"
-        [System.IO.File]::WriteAllText($kiroStaging, $transformed, $utf8NoBom)
-        Remove-Item -Path $kiroTarget -Force
-        Move-Item -Path $kiroStaging -Destination $kiroTarget
+        New-KiroSteeringFile $CentralDir
         Write-Host "Updated agent skill path: $kiroTarget" -ForegroundColor Green
     }
 

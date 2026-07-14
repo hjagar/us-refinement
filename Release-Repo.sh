@@ -35,7 +35,7 @@ if [ -n "$(git status --porcelain)" ]; then
 fi
 
 GATE_FAILED=false
-for f in *.sh; do
+for f in *.sh lib/*.sh; do
     [[ -f "$f" ]] || continue
     echo "  checking $f..."
     if ! shellcheck "$f"; then
@@ -111,9 +111,10 @@ cp update.ps1 "$BUILD_DIR/"
 cp update.sh "$BUILD_DIR/"
 cp -r scripts "$BUILD_DIR/"
 cp -r tests "$BUILD_DIR/"
+cp -r lib "$BUILD_DIR/"
 
 cd "$BUILD_DIR"
-zip -r "$ZIP_PATH" SKILL.md us-refinement-uninstall.ps1 us-refinement-uninstall.sh update.ps1 update.sh scripts tests
+zip -r "$ZIP_PATH" SKILL.md us-refinement-uninstall.ps1 us-refinement-uninstall.sh update.ps1 update.sh scripts tests lib
 cd "$REPO_ROOT"
 echo "  Created build/us-refinement.zip"
 
