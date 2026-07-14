@@ -164,6 +164,15 @@ scenarios:
   ```
   This tip must be based solely on a text-only scan of the input story — do NOT execute any system or shell commands to verify their presence when in Standard Mode.
 
+### Post-Refinement Validation Hint
+- If the storage mode chosen in Step 0.5 is `openspec`, `hybrid`, or `hybrid-delayed` (any mode that writes a local file), append a non-intrusive GitHub-style tip alert suggesting the user validate the AI-DATA block against the schema:
+  ```markdown
+  > [!TIP]
+  > You can run `python scripts/validate_refinement.py <path-to-generated-file>` to validate this story's AI-DATA block against the schema.
+  ```
+  Use the actual path of the file you just wrote to.
+- If the storage mode is `engram` (pure memory, no local file), skip this hint entirely — there is no file path to point to.
+
 ## Step 4: Offer to write back to GitHub (only if the source was a GitHub issue)
 
 If the story came from a GitHub issue (Step 0B), verify if the GitHub CLI is available and authenticated by checking `gh auth status` or its path executable.
