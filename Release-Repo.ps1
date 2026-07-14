@@ -102,16 +102,24 @@ if ($confirm -notin @('y','Y')) {
 # [3/5] Package
 Write-Host "[3/5] Packaging..." -ForegroundColor Cyan
 
-# Bump metadata.version in the SKILL.md frontmatter (migrates the legacy
-# <!-- version: vX.Y.Z --> comment format the first time it encounters it)
+# Bump metadata.version in the SKILL.md frontmatter, scoped to the
+# frontmatter block only (migrates the legacy <!-- version: vX.Y.Z -->
+# comment format the first time it encounters it)
 $workspaceSkill = Join-Path $repoRoot "SKILL.md"
 $content = Get-Content $workspaceSkill -Raw
-if ($content -match '(?m)^(\s*version:\s*)v[\d\.]+(\s*)$') {
-    $content = $content -replace '(?m)^(\s*version:\s*)v[\d\.]+(\s*)$', "`${1}$nextVersion`${2}"
-} else {
-    $content = $content -replace '<!-- version: v[\d\.]+ -->\r?\n?', ''
-    $content = $content -replace '(?s)\A(---\r?\n.*?)\r?\n---', "`$1`r`nmetadata:`r`n  version: $nextVersion`r`n---"
+$fm = [regex]::Match($content, '(?s)\A---\r?\n(.*?)\r?\n---')
+if (-not $fm.Success) {
+    Write-Error "SKILL.md is missing a valid YAML frontmatter block."
+    exit 1
 }
+$frontmatter = $fm.Groups[1].Value
+if ($frontmatter -match '(?m)^(\s*version:\s*)v[\d\.]+(\s*)$') {
+    $newFrontmatter = [regex]::Replace($frontmatter, '(?m)^(\s*version:\s*)v[\d\.]+(\s*)$', { param($m) $m.Groups[1].Value + $nextVersion + $m.Groups[2].Value })
+} else {
+    $newFrontmatter = $frontmatter + "`r`nmetadata:`r`n  version: $nextVersion"
+}
+$content = $content.Substring(0, $fm.Groups[1].Index) + $newFrontmatter + $content.Substring($fm.Groups[1].Index + $fm.Groups[1].Length)
+$content = $content -replace '\r?\n<!-- version: v[\d\.]+ -->\r?\n', "`r`n"
 Set-Content -Path $workspaceSkill -Value $content -NoNewline
 
 # Commit version bump to workspace git history

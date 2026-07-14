@@ -15,7 +15,8 @@ if (-not (Test-Path $LocalSkill)) {
 
 $localContent = Get-Content $LocalSkill -Raw
 $localVersion = "v0.0.0"
-if ($localContent -match '(?m)^\s*version:\s*(v[\d\.]+)\s*$') {
+$fm = [regex]::Match($localContent, '(?s)\A---\r?\n(.*?)\r?\n---')
+if ($fm.Success -and $fm.Groups[1].Value -match '(?m)^\s*version:\s*(v[\d\.]+)\s*$') {
     $localVersion = $Matches[1]
 } elseif ($localContent -match '<!-- version: (v[\d\.]+) -->') {
     $localVersion = $Matches[1]
