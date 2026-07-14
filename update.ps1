@@ -117,7 +117,30 @@ try {
             Write-Host "Updated agent skill path: $agent" -ForegroundColor Green
         }
     }
-    
+
+    # Kiro is a special case: a single generated steering file at
+    # ~/.kiro/steering/us-refinement.md (SKILL.md's frontmatter with `inclusion: always`
+    # injected), not a folder+SKILL.md copy - no scripts/ or tests/ payload.
+    $kiroSteeringDir = Join-Path $HomeDir ".kiro\steering"
+    $kiroTarget = Join-Path $kiroSteeringDir "us-refinement.md"
+    if (Test-Path $kiroTarget) {
+        $utf8NoBom = [System.Text.UTF8Encoding]::new($false)
+        $rawContent = [System.IO.File]::ReadAllText($newSkill, $utf8NoBom)
+        $frontmatterStart = [regex]::Match($rawContent, "^---(\r?\n)")
+        if (-not $frontmatterStart.Success) {
+            Write-Error "Error: SKILL.md at $CentralDir does not start with a '---' YAML frontmatter delimiter - cannot update Kiro steering file."
+            exit 1
+        }
+        $eol = $frontmatterStart.Groups[1].Value
+        $insertPos = $frontmatterStart.Length
+        $transformed = $rawContent.Substring(0, $insertPos) + "inclusion: always" + $eol + $rawContent.Substring($insertPos)
+        $kiroStaging = "$kiroTarget.staging"
+        [System.IO.File]::WriteAllText($kiroStaging, $transformed, $utf8NoBom)
+        Remove-Item -Path $kiroTarget -Force
+        Move-Item -Path $kiroStaging -Destination $kiroTarget
+        Write-Host "Updated agent skill path: $kiroTarget" -ForegroundColor Green
+    }
+
     Write-Host "Update completed successfully to version $latestVersion!" -ForegroundColor Green
 }
 catch {

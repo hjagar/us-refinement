@@ -71,12 +71,52 @@ function Copy-SkillFile ($targetPath, $sourcePath) {
     Move-Item -Path $stagingPath -Destination $targetPath
 }
 
+# 3b. Kiro Steering File Helper
+# Kiro does not use the folder+SKILL.md format other agents use: it reads a single flat
+# steering file at ~/.kiro/steering/us-refinement.md with `inclusion: always` injected as
+# the first key inside SKILL.md's YAML frontmatter. No scripts/ or tests/ payload - steering
+# files are plain markdown only. Stages then swaps into place for the same atomicity
+# guarantee as Copy-SkillFile.
+function New-KiroSteeringFile ($sourcePath) {
+    $steeringDir = Join-Path $HomeDir ".kiro\steering"
+    $targetFile = Join-Path $steeringDir "us-refinement.md"
+    $stagingFile = "$targetFile.staging"
+
+    $srcFile = Join-Path $sourcePath "SKILL.md"
+    if (-not (Test-Path $srcFile)) {
+        Write-Error "Error: SKILL.md not found at $sourcePath"
+        exit 1
+    }
+
+    $utf8NoBom = [System.Text.UTF8Encoding]::new($false)
+    $rawContent = [System.IO.File]::ReadAllText($srcFile, $utf8NoBom)
+    $frontmatterStart = [regex]::Match($rawContent, "^---(\r?\n)")
+    if (-not $frontmatterStart.Success) {
+        Write-Error "Error: SKILL.md at $sourcePath does not start with a '---' YAML frontmatter delimiter - cannot generate Kiro steering file."
+        exit 1
+    }
+
+    New-Item -ItemType Directory -Path $steeringDir -Force | Out-Null
+    Write-Host "Generating Kiro steering file: $targetFile"
+
+    $eol = $frontmatterStart.Groups[1].Value
+    $insertPos = $frontmatterStart.Length
+    $transformed = $rawContent.Substring(0, $insertPos) + "inclusion: always" + $eol + $rawContent.Substring($insertPos)
+    [System.IO.File]::WriteAllText($stagingFile, $transformed, $utf8NoBom)
+
+    if (Test-Path $targetFile) {
+        Remove-Item -Path $targetFile -Force
+    }
+    Move-Item -Path $stagingFile -Destination $targetFile
+}
+
 # 4. Installation Logic
 if ($Local) {
     Write-Host "Installing us-refinement in LOCAL Mode..."
     foreach ($agent in $AgentPaths) {
         Copy-SkillFile $agent $SrcDir
     }
+    New-KiroSteeringFile $SrcDir
 } else {
     Write-Host "Installing us-refinement in GLOBAL Mode..."
     if (Test-Path $CentralDir) {
@@ -128,6 +168,7 @@ if ($Local) {
     foreach ($agent in $AgentPaths) {
         Copy-SkillFile $agent $CentralDir
     }
+    New-KiroSteeringFile $CentralDir
 }
 
 Write-Host "Installation completed successfully!"
