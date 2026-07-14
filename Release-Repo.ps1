@@ -102,13 +102,15 @@ if ($confirm -notin @('y','Y')) {
 # [3/5] Package
 Write-Host "[3/5] Packaging..." -ForegroundColor Cyan
 
-# Inject tag version in local SKILL.md directly in workspace
+# Bump metadata.version in the SKILL.md frontmatter (migrates the legacy
+# <!-- version: vX.Y.Z --> comment format the first time it encounters it)
 $workspaceSkill = Join-Path $repoRoot "SKILL.md"
 $content = Get-Content $workspaceSkill -Raw
-if ($content -match '<!-- version: v[\d\.]+ -->') {
-    $content = $content -replace '<!-- version: v[\d\.]+ -->', "<!-- version: $nextVersion -->"
+if ($content -match '(?m)^(\s*version:\s*)v[\d\.]+(\s*)$') {
+    $content = $content -replace '(?m)^(\s*version:\s*)v[\d\.]+(\s*)$', "`${1}$nextVersion`${2}"
 } else {
-    $content = "<!-- version: $nextVersion -->`n" + $content
+    $content = $content -replace '<!-- version: v[\d\.]+ -->\r?\n?', ''
+    $content = $content -replace '(?s)\A(---\r?\n.*?)\r?\n---', "`$1`r`nmetadata:`r`n  version: $nextVersion`r`n---"
 }
 Set-Content -Path $workspaceSkill -Value $content -NoNewline
 

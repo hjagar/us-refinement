@@ -86,11 +86,22 @@ fi
 
 echo "[3/5] Packaging..."
 
-# Inject tag version directly in workspace SKILL.md
-if grep -q "<!-- version: v[0-9.]* -->" "SKILL.md"; then
-    sed -i.bak "s/<!-- version: v[0-9.]* -->/<!-- version: $NEXT_VERSION -->/g" "SKILL.md" && rm "SKILL.md.bak"
+# Bump metadata.version in the SKILL.md frontmatter (migrates the legacy
+# <!-- version: vX.Y.Z --> comment format the first time it encounters it)
+if grep -qE "^[[:space:]]*version:[[:space:]]*v[0-9.]+[[:space:]]*$" "SKILL.md"; then
+    sed -i.bak -E "s/^([[:space:]]*version:[[:space:]]*)v[0-9.]+([[:space:]]*)\$/\1${NEXT_VERSION}\2/" "SKILL.md" && rm "SKILL.md.bak"
 else
-    echo -e "<!-- version: $NEXT_VERSION -->\n$(cat "SKILL.md")" > "SKILL.md"
+    sed -i.bak -E "/<!-- version: v[0-9.]* -->/d" "SKILL.md" && rm "SKILL.md.bak"
+    awk -v ver="$NEXT_VERSION" '
+        BEGIN { fm=0 }
+        /^---$/ {
+            fm++
+            if (fm == 2) { print "metadata:"; print "  version: " ver }
+            print
+            next
+        }
+        { print }
+    ' "SKILL.md" > "SKILL.md.tmp" && mv "SKILL.md.tmp" "SKILL.md"
 fi
 
 # Commit version bump to workspace git history

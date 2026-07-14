@@ -14,7 +14,11 @@ if [ ! -f "$LOCAL_SKILL" ]; then
     exit 1
 fi
 
-local_version=$(grep -oE '<!-- version: v[0-9.]* -->' "$LOCAL_SKILL" | sed -E 's/<!-- version: (v[0-9.]*) -->/\1/' || echo "v0.0.0")
+local_version=$(grep -oE '^[[:space:]]*version:[[:space:]]*v[0-9.]+' "$LOCAL_SKILL" | sed -E 's/^[[:space:]]*version:[[:space:]]*//' | head -n1)
+if [ -z "$local_version" ]; then
+    local_version=$(grep -oE '<!-- version: v[0-9.]* -->' "$LOCAL_SKILL" | sed -E 's/<!-- version: (v[0-9.]*) -->/\1/')
+fi
+[ -z "$local_version" ] && local_version="v0.0.0"
 echo "Local version: $local_version"
 
 # 2. Fetch latest remote version from GitHub
