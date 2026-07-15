@@ -3,7 +3,7 @@ name: us-refinement
 description: Refines a raw user story into an INVEST-checked spec with Given/When/Then acceptance criteria, before technical design or /sdd-new. Trigger on /refine, /refinar, pasted As a/Como... stories, GitHub issue refinement requests, or agile terms like acceptance criteria and INVEST.
 metadata:
   author: hjagar
-  version: v1.2.1
+  version: v1.3.0
 ---
 
 # User Story Refinement
