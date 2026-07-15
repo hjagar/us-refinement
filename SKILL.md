@@ -70,8 +70,9 @@ If the story clearly describes two or more independent, separately shippable fea
 This step runs ONLY if the user explicitly provided the `--deep` flag in their manual trigger (e.g., `/refine --deep`). If running in Standard Mode (without `--deep`), skip this step entirely and do NOT execute any system or shell commands.
 
 When running in Deep Mode (`--deep`), inspect the system PATH and repository workspace to analyze feasibility before asking questions:
-1. **Scan for mentioned tools/runtimes**: Scan the raw user story for external dependencies (e.g., `Docker`, `Python`, `gh`, `unzip`, `shellcheck`, `winget`). Use terminal commands (e.g., `where <tool>` on Windows or `command -v <tool>` on Unix/WSL) to check if the tool is installed in the system PATH.
-   - If a tool is missing, record a warning to be appended to the final output.
+1. **Scan for mentioned tools/runtimes**: Scan the raw user story for external dependencies (e.g., `Docker`, `Python`, `gh`, `unzip`, `shellcheck`, `winget`). Before building any verification command, check each extracted tool name against the safe pattern `^[\w.-]+$` — never build a shell command from free text without this check.
+   - **If the name matches the pattern**: run the check (e.g., `where <tool>` on Windows or `command -v <tool>` on Unix/WSL) to see if the tool is installed in the system PATH. If a tool is missing, record a warning to be appended to the final output.
+   - **If the name does NOT match the pattern**: do not run any command with that text. Instead, record a warning in the final output stating that the tool name could not be verified due to an invalid format, so the user can check it manually.
 2. **Scan for mentioned codebase components/files**: Scan the raw user story for existing files/components (e.g., `installer`, `uninstaller`, `validator`). Search the repository (e.g., via directory list or git searches) to see if matching files exist.
    - If multiple files match (e.g., both `install.ps1` and `install.sh` when "installer" is mentioned), or if no files match, record a warning to ask a clarification question in Step 2.
 
