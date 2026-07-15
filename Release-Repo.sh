@@ -38,7 +38,7 @@ GATE_FAILED=false
 for f in *.sh lib/*.sh; do
     [[ -f "$f" ]] || continue
     echo "  checking $f..."
-    if ! shellcheck "$f"; then
+    if ! shellcheck -x "$f"; then
         GATE_FAILED=true
     fi
 done
