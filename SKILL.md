@@ -173,6 +173,13 @@ This chain never depends on `gh`/GitHub at any point — Step 0B (GitHub issues)
   ```
   This tip must be based solely on a text-only scan of the input story — do NOT execute any system or shell commands to verify their presence when in Standard Mode.
 
+### Local File Persistence for openspec/hybrid/hybrid-delayed Storage
+- If the storage mode chosen in Step 0.5 is `openspec`, `hybrid`, or `hybrid-delayed` (any mode that writes a local file), the refined story must be written to `openspec/changes/US{n}-{slug}/story.md`, mirroring this repo's own SDD per-change folder convention (one folder per story), with `US{n}-{slug}` also included as part of the story's title or id inside the file content.
+- **If `openspec/changes/US{n}-{slug}/` does not exist yet**: warn the user that it will be created and ask for explicit confirmation before creating it. Never create it silently.
+  - **If the user confirms**: create the folder and write `story.md` inside it.
+  - **If the user declines, or the folder creation fails** (permissions, read-only disk): fall back to printing the refined story via console output instead. It becomes the user's responsibility to copy it manually if they want to keep it — do not silently retry or pick another location.
+- **If the folder already exists**: write directly to `story.md` inside it, without asking for confirmation again.
+
 ### Post-Refinement Validation Hint
 - If the storage mode chosen in Step 0.5 is `openspec`, `hybrid`, or `hybrid-delayed` (any mode that writes a local file), append a non-intrusive GitHub-style tip alert suggesting the user validate the AI-DATA block against the schema:
   ```markdown
