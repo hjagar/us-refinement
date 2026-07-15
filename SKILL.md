@@ -183,31 +183,38 @@ This chain never depends on `gh`/GitHub at any point — Step 0B (GitHub issues)
 
 ## Step 4: Offer to write back to GitHub (only if the source was a GitHub issue)
 
-If the story came from a GitHub issue (Step 0B), verify if the GitHub CLI is available and authenticated by checking `gh auth status` or its path executable.
-- **If authenticated**: Ask the user how they want to document it — do not write to GitHub without an explicit choice:
-  - **Comment (default, non-destructive)**: post the refined story as a comment on the issue, preserving the original body untouched. Good when a human reviewer needs to approve the refinement before work starts.
-    ```
-    gh issue comment <number> --body-file <refined-story.md>
-    ```
-  - **Replace the issue body**: overwrite the original description with the refined version (only if the user explicitly prefers this).
-    ```
-    gh issue edit <number> --body-file <refined-story.md>
-    ```
+If the story came from a GitHub issue (Step 0B):
 
-  Immediately after executing either write-back command, inspect the generated refinement text in memory to check for pending assumptions:
-  - **If the output contains the `### Assumptions` section with at least one unchecked checkbox (`- [ ]`)**:
-    Ensure the label exists and apply it to the issue:
-    ```
-    gh label create needs-review-assumptions --color FBCA04 --description "Issue has pending assumptions that need business review" --force
-    gh issue edit <number> --add-label "needs-review-assumptions"
-    ```
-  - **If the output does not contain the `### Assumptions` section or has no unchecked checkboxes**:
-    Remove the label from the issue (run this non-blockingly, ignoring any warnings if the label is not present):
-    ```
-    gh issue edit <number> --remove-label "needs-review-assumptions"
-    ```
+1. **Write the refined output to a real file first.** `--body-file` needs an actual file behind it — write the Step 3 output to a real, agent-accessible temporary file (e.g., a scratch/temp location) and use that path as `<refined-story-file>` in every command below. Do this regardless of the storage mode chosen in Step 0.5: this file is only a bridge for the `gh` write-back, not a second copy of the story's persistent record.
+2. Verify if the GitHub CLI is available, authenticated, and the repo remote is GitHub-hosted (checking `gh auth status` or its path executable, plus the remote URL detected in Step 0B).
+   - **If available, authenticated, and GitHub-hosted**: Ask the user how they want to document it — do not write to GitHub without an explicit choice:
+     - **Comment (default, non-destructive)**: post the refined story as a comment on the issue, preserving the original body untouched. Good when a human reviewer needs to approve the refinement before work starts.
+       ```
+       gh issue comment <number> --body-file <refined-story-file>
+       ```
+     - **Replace the issue body**: overwrite the original description with the refined version (only if the user explicitly prefers this).
+       ```
+       gh issue edit <number> --body-file <refined-story-file>
+       ```
 
-- **If unauthenticated or missing**: Inform the user that the GitHub CLI is not available or authenticated, and guide them to manually copy/paste the refined output into the GitHub issue.
+     Check the command's exit status:
+     - **On success**: delete `<refined-story-file>` — its content is now persisted on GitHub (and, if the storage mode is `engram`, still lives in Engram's memory; the file was never the persistent record either way).
+
+       Then inspect the generated refinement text in memory to check for pending assumptions:
+       - **If the output contains the `### Assumptions` section with at least one unchecked checkbox (`- [ ]`)**:
+         Ensure the label exists and apply it to the issue:
+         ```
+         gh label create needs-review-assumptions --color FBCA04 --description "Issue has pending assumptions that need business review" --force
+         gh issue edit <number> --add-label "needs-review-assumptions"
+         ```
+       - **If the output does not contain the `### Assumptions` section or has no unchecked checkboxes**:
+         Remove the label from the issue (run this non-blockingly, ignoring any warnings if the label is not present):
+         ```
+         gh issue edit <number> --remove-label "needs-review-assumptions"
+         ```
+     - **On failure** (network error, permissions, etc.): keep `<refined-story-file>` on disk, and tell the user the write-back failed and why, applying the same manual-copy guidance as the case below.
+
+   - **If `gh` is unavailable/unauthenticated, or the repo host isn't yet supported by this skill's tooling (e.g. GitLab, Bitbucket)**: keep `<refined-story-file>` on disk, and tell the user the automatic write-back can't run — they need to manually copy the content into the issue and delete the file afterward themselves.
 
 ## Step 5: Closing
 
