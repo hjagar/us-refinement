@@ -99,13 +99,28 @@ def parse_yaml_block(yaml_text):
     return data
 
 def validate(file_path):
-    print(f"Validating refinement file: {file_path}")
     try:
         with open(file_path, 'r', encoding='utf-8') as f:
             content = f.read()
     except Exception as e:
         print(f"Error: Unable to read file {file_path}. Details: {e}")
         return False
+
+    return validate_content(content, f"Validating refinement file: {file_path}")
+
+
+def validate_stdin():
+    try:
+        content = sys.stdin.buffer.read().decode('utf-8')
+    except Exception as e:
+        print(f"Error: Unable to read content from stdin. Details: {e}")
+        return False
+
+    return validate_content(content, "Validating refinement content from stdin")
+
+
+def validate_content(content, banner):
+    print(banner)
 
     # Extract the block starting with <!-- [AI-DATA] and ending with -->
     match = re.search(r"<!--\s*\[AI-DATA\]\s*\n(.*?)\n\s*-->", content, re.DOTALL)
@@ -194,9 +209,13 @@ def validate(file_path):
     return True
 
 if __name__ == '__main__':
-    if len(sys.argv) < 2:
+    if len(sys.argv) >= 2:
+        success = validate(sys.argv[1])
+    elif not sys.stdin.isatty():
+        success = validate_stdin()
+    else:
         print("Usage: python validate_refinement.py <path_to_markdown_file>")
+        print("       or pipe AI-DATA content via stdin: cat file.md | python validate_refinement.py")
         sys.exit(1)
-        
-    success = validate(sys.argv[1])
+
     sys.exit(0 if success else 1)
