@@ -13,7 +13,7 @@
 1. **INVEST-driven Refinement**: Assesses raw user stories (or issues) against INVEST principles (Independent, Negotiable, Valuable, Estimable, Small, Testable).
 2. **Behavioral Acceptance Criteria**: Generates explicit **Given/When/Then** scenarios covering happy paths and edge cases.
 3. **Invisible AI Zone**: Formats human-facing specifications in the local language (e.g., Spanish) while injecting a hidden HTML comment block (`<!-- ... -->`) in English at the end. This keeps the project board clean for humans while giving token-efficient, unambiguous prompts to AI tools reading the issues via APIs.
-4. **Multi-Agent Portability**: Optimized to be easily ported and run across multiple AI agents (Gentle AI / Antigravity CLI, Claude Code, Cursor, Windsurf, Copilot, etc.).
+4. **Multi-Agent Portability**: Optimized to be easily ported and run across multiple AI agents — Claude Code (including multi-account setups), Gemini / Antigravity CLI, OpenCode, GitHub Copilot, Cursor, and Kiro.
 5. **Environment Auto-Detection**: Dynamically checks for tools like `engram`, `gh` cli, or SDD systems to adjust its storage and execution strategies.
 
 ### Quick Start
@@ -39,7 +39,7 @@ If you want to contribute or run in local/development mode:
    git clone https://github.com/hjagar/us-refinement.git
    cd us-refinement
    ```
-2. Run the installer script locally:
+2. Run the installer script locally — this copies `SKILL.md`, `scripts/`, and `tests/` automatically into every supported agent's skill directory (Claude Code, Gemini, OpenCode, Copilot, Cursor, Kiro, and any detected `.claude-*` multi-account setups), no manual per-agent configuration needed:
    * **Windows (PowerShell)**:
      ```powershell
      .\install.ps1 -Local
@@ -48,11 +48,6 @@ If you want to contribute or run in local/development mode:
      ```bash
      ./install.sh --local
      ```
-
-2. Configure it globally for your specific AI agent:
-   - **Antigravity / Gentle AI**: Add the repository path to your global `skills.json`.
-   - **Claude Code**: Reference the guidelines in your global `CLAUDE.md`.
-   - **Cursor / OpenCode**: Append the rules to your `.cursorrules` file.
 
 #### C. Updating
 To update the skill to the latest version available on GitHub:
@@ -80,7 +75,7 @@ Special thanks to [Alan Buscaglia](https://github.com/Gentleman-Programming) ([@
 1. **Refinamiento basado en INVEST**: Evalúa la historia cruda (o issue) bajo los criterios INVEST (Independiente, Negociable, Valiosa, Estimable, Pequeña, Testable).
 2. **Criterios de Aceptación Claros**: Genera escenarios en formato **Given/When/Then** cubriendo caminos felices y casos de borde.
 3. **Zona Oculta para IA (Invisible AI Zone)**: Escribe la especificación para humanos en el idioma local (ej. Español) e inyecta al final un bloque oculto de comentarios HTML (`<!-- ... -->`) en inglés con los criterios traducidos y metadatos optimizados. Esto mantiene la interfaz visual limpia para el equipo y le da instrucciones precisas y token-eficientes a cualquier IA que lea el issue mediante API.
-4. **Portabilidad Multi-Agente**: Diseñado para funcionar en múltiples herramientas (Gentle AI / Antigravity CLI, Claude Code, Cursor, Windsurf, Copilot, etc.).
+4. **Portabilidad Multi-Agente**: Diseñado para funcionar en múltiples herramientas — Claude Code (incluyendo configuraciones multi-cuenta), Gemini / Antigravity CLI, OpenCode, GitHub Copilot, Cursor y Kiro.
 5. **Autodetección de Entorno**: Reconoce dinámicamente si herramientas como `engram`, `gh` cli o flujos SDD están disponibles para adaptar su flujo.
 
 ### Instalación rápida
@@ -106,7 +101,7 @@ Si querés colaborar con el proyecto o correr en modo local/desarrollo:
    git clone https://github.com/hjagar/us-refinement.git
    cd us-refinement
    ```
-2. Ejecutá el instalador de forma local:
+2. Ejecutá el instalador de forma local — esto copia `SKILL.md`, `scripts/` y `tests/` automáticamente a la carpeta de cada agente soportado (Claude Code, Gemini, OpenCode, Copilot, Cursor, Kiro, y cualquier configuración multi-cuenta `.claude-*` detectada), sin necesidad de configuración manual por agente:
    * **Windows (PowerShell)**:
      ```powershell
      .\install.ps1 -Local
@@ -115,11 +110,6 @@ Si querés colaborar con el proyecto o correr en modo local/desarrollo:
      ```bash
      ./install.sh --local
      ```
-
-2. Agrégalo a tus configuraciones globales según tu agente de IA:
-   - **Antigravity / Gentle AI**: Añade la ruta del repositorio a tu `skills.json` global.
-   - **Claude Code**: Referencia las instrucciones en tu `CLAUDE.md`.
-   - **Cursor / OpenCode**: Copia las directivas en tu archivo `.cursorrules`.
 
 #### C. Actualización
 Para actualizar el skill a la última versión disponible en GitHub:
