@@ -48,7 +48,7 @@ Before starting the refinement analysis, check the available tools and configure
      - `hybrid-delayed` (use local files for visualization during the session, saving everything to Engram at the end of the session).
 
      **This gate is flexible.** After presenting the options, explicitly offer: "If you'd rather not choose right now, I can continue with `engram` as the default." If the user says "go ahead anyway", "skip it", "doesn't matter" or similar instead of picking one, proceed using `engram` as the storage mode, without blocking the flow.
-   - **If inactive**: Check if the workspace contains an active SDD structure (presence of `.agents/` or `openspec/` folders). If yes, default to `openspec` local file storage. Otherwise, default to standard console log output (clipboard fallback). No question is asked in this case, so there is nothing to bypass.
+   - **If inactive**: Check if the workspace contains an active SDD structure (presence of `.agents/` or `openspec/` folders). If yes, default to `openspec` local file storage. Otherwise, default to standard console log output. No question is asked in this case, so there is nothing to bypass.
 
 ## Step 1: Analyze against INVEST criteria
 
