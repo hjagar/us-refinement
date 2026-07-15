@@ -129,7 +129,7 @@ Output format:
 - [ ] [Second unconfirmed assumption / skipped question mapping]
 
 <!-- [AI-DATA]
-id: [US-{issue_number} if sourced from GitHub (Step 0B), e.g., US-24, OR US{number} if sourced from pasted text (Step 0A), e.g., US12]
+id: [US-{issue_number} if sourced from GitHub (Step 0B), e.g., US-24, OR US{number} if sourced from pasted text (Step 0A) — see "ID Generation for Pasted Stories" below for how to determine {number}, e.g., US12]
 type: [feat|fix|refactor|docs|chore]
 breaking: [true|false]
 dependencies: [list of referenced story IDs in their exact format, matching hyphens if present, e.g., [US-24, US1] or []]
@@ -148,6 +148,14 @@ scenarios:
     then: "[expected outcomes in English]"
 -->
 ```
+
+### ID Generation for Pasted Stories (Step 0A only)
+When the story source is pasted text (Step 0A), generate the `id` field of the AI-DATA block by following this exact chain, stopping at the first rule that applies:
+1. **Explicit ID in the text**: If the pasted text already mentions an identifier matching the `USxx` pattern (e.g., "US12", "US-7"), reuse that number as the `id` — do not generate a new one.
+2. **Scan active storage**: If no explicit ID is present, scan the storage mode(s) configured in Step 0.5 (Engram and/or the `openspec/changes/` directory) for previously recorded stories, find the highest `USxx` number in use, and assign the next one (`max + 1`).
+3. **Ask the user**: If there is no explicit ID and no storage with history available (Engram inactive, no `openspec/` folder, or storage tools unconfigured), ask the user directly which number/ID to use. Never invent or assume one.
+
+This chain never depends on `gh`/GitHub at any point — Step 0B (GitHub issues) already derives the `id` from the issue number directly and does not use this chain.
 
 ### Conditional Rendering Rules for "### Assumptions"
 
