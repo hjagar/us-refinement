@@ -46,7 +46,7 @@ if (-not (Get-Command gh -ErrorAction SilentlyContinue)) {
 $shFiles = @(Get-ChildItem -Path $repoRoot -Filter *.sh -File) + @(Get-ChildItem -Path (Join-Path $repoRoot "lib") -Filter *.sh -File -ErrorAction SilentlyContinue)
 foreach ($file in $shFiles) {
     Write-Host "  checking $($file.Name)..." -ForegroundColor Gray
-    shellcheck $file.FullName
+    shellcheck -x $file.FullName
     if ($LASTEXITCODE -ne 0) {
         Write-Host "shellcheck failed on $($file.Name). Aborting." -ForegroundColor Red
         exit 1
