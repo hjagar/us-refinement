@@ -113,10 +113,11 @@ if (-not $fm.Success) {
     exit 1
 }
 $frontmatter = $fm.Groups[1].Value
-if ($frontmatter -match '(?m)^(\s*version:\s*)v[\d\.]+(\s*)$') {
-    $newFrontmatter = [regex]::Replace($frontmatter, '(?m)^(\s*version:\s*)v[\d\.]+(\s*)$', { param($m) $m.Groups[1].Value + $nextVersion + $m.Groups[2].Value })
+$plainVersion = $nextVersion.TrimStart('v')
+if ($frontmatter -match '(?m)^(\s*version:\s*)"?v?[\d\.]+"?(\s*)$') {
+    $newFrontmatter = [regex]::Replace($frontmatter, '(?m)^(\s*version:\s*)"?v?[\d\.]+"?(\s*)$', { param($m) $m.Groups[1].Value + '"' + $plainVersion + '"' + $m.Groups[2].Value })
 } else {
-    $newFrontmatter = $frontmatter + "`r`nmetadata:`r`n  version: $nextVersion"
+    $newFrontmatter = $frontmatter + "`r`nmetadata:`r`n  version: `"$plainVersion`""
 }
 $content = $content.Substring(0, $fm.Groups[1].Index) + $newFrontmatter + $content.Substring($fm.Groups[1].Index + $fm.Groups[1].Length)
 $content = $content -replace '\r?\n<!-- version: v[\d\.]+ -->\r?\n', "`r`n"

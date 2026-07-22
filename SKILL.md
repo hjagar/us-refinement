@@ -1,9 +1,10 @@
 ---
 name: us-refinement
-description: Refines a raw user story into an INVEST-checked spec with Given/When/Then acceptance criteria, before technical design or /sdd-new. Trigger on /refine, /refinar, pasted As a/Como... stories, GitHub issue refinement requests, or agile terms like acceptance criteria and INVEST.
+description: "Trigger: /refine, /refinar, pasted As a/Como... stories, or GitHub issue refinement. Refines a raw user story into an INVEST-checked spec with Given/When/Then acceptance criteria before technical design or /sdd-new."
+license: MIT
 metadata:
   author: hjagar
-  version: v1.3.0
+  version: "1.3.0"
 ---
 
 # User Story Refinement
