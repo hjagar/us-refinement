@@ -89,16 +89,17 @@ echo "[3/5] Packaging..."
 # Bump metadata.version in the SKILL.md frontmatter, scoped to the
 # frontmatter block only (migrates the legacy <!-- version: vX.Y.Z -->
 # comment format the first time it encounters it), CRLF-tolerant
-awk -v ver="$NEXT_VERSION" '
+PLAIN_VERSION="${NEXT_VERSION#v}"
+awk -v ver="$PLAIN_VERSION" '
     BEGIN { fm = 0; bumped = 0 }
     /^---[[:space:]]*\r?$/ {
         fm++
-        if (fm == 2 && !bumped) { print "metadata:"; print "  version: " ver; bumped = 1 }
+        if (fm == 2 && !bumped) { print "metadata:"; print "  version: \"" ver "\""; bumped = 1 }
         print
         next
     }
-    fm == 1 && /^[[:space:]]*version:[[:space:]]*v[0-9.]+[[:space:]]*\r?$/ {
-        print "  version: " ver
+    fm == 1 && /^[[:space:]]*version:[[:space:]]*"?v?[0-9.]+"?[[:space:]]*\r?$/ {
+        print "  version: \"" ver "\""
         bumped = 1
         next
     }
