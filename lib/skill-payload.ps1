@@ -63,7 +63,7 @@ function Copy-SkillFile ($targetPath, $sourcePath) {
         exit 1
     }
 
-    foreach ($dir in @("scripts", "tests")) {
+    foreach ($dir in @("scripts", "tests", "assets", "references")) {
         $srcDir = Join-Path $sourcePath $dir
         if (Test-Path $srcDir) {
             Write-Host "Copying $dir/ to: $targetPath"

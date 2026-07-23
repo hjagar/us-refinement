@@ -67,7 +67,7 @@ copy_skill_file() {
         exit 1
     fi
 
-    for dir in scripts tests; do
+    for dir in scripts tests assets references; do
         if [ -d "$source/$dir" ]; then
             echo "Copying $dir/ to: $target"
             cp -r "$source/$dir" "$staging/"
